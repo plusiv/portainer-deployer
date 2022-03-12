@@ -5,7 +5,6 @@ import os
 import requests
 from urllib3.exceptions import InsecureRequestWarning
 from utils.utils import *
-from utils.utils import generate_random_hash
 
 
 class PortainerDeployer:
