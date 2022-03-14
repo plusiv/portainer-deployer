@@ -13,9 +13,14 @@ class PortainerDeployer:
     def __init__(self):
         """Initialize the PortainerDeployer class and runs the main function.
         """        
+        # Load .env file
+        env_file = configparser.ConfigParser()
+        env_file.read('.env')
+        PATH_TO_CONFIG = env_file['CONFIG']['PATH_TO_CONFIG']
+
         # Load config
         config = configparser.ConfigParser()
-        config.read('.env')
+        config.read(PATH_TO_CONFIG)
         self.portainer_config = config['PORTAINER']
 
         # Set non-ssl connection
@@ -100,6 +105,7 @@ class PortainerDeployer:
             type=int,
             help='Endponint Id in Portainer'
         )
+        
 
         parser.add_argument('--version', action='version', version='%(prog)s 0.0.1 (Alpha)')
 
