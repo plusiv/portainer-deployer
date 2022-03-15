@@ -21,30 +21,38 @@ class PortainerDeployer:
         # Load config
         config = configparser.ConfigParser()
         config.read(PATH_TO_CONFIG)
-        self.portainer_config = config['PORTAINER']
+        self._portainer_config = config['PORTAINER']
 
         # Set non-ssl connection
-        if not self.portainer_config.getboolean('SSL') and self.portainer_config['URL'].split('://')[0] == 'https':
+        if not self._portainer_config.getboolean('SSL') and self._portainer_config['URL'].split('://')[0] == 'https':
             # Suppress only the single warning from urllib3 needed.
             requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
         # Set portainer connection
-        self.portainer_connection = f"{self.portainer_config['URL']}:{self.portainer_config['PORT']}" 
-        self.connection_headers = {'X-API-Key': self.portainer_config['TOKEN']}
+        self.__portainer_connection = f"{self._portainer_config['URL']}:{self._portainer_config['PORT']}" 
+        self.__connection_headers = {'X-API-Key': self._portainer_config['TOKEN']}
         
         # Set arguments
-        self.args = self.parse_args()
+        self._main_parser, self._get_parser, self._deploy_parser, = self.__parser()
+        self._parser_args = self._main_parser.parse_args()
 
-        # Run main function
-        self.main()
         
+        subparsers = {'get': self._get_parser, 'deploy': self._deploy_parser}
 
-    @staticmethod
-    def parse_args() -> argparse.Namespace:
+        # Run the default function
+        selected_subparser = self._parser_args.subparser_name
+        if selected_subparser:
+            if len(sys.argv) == 2:
+                subparsers[selected_subparser].print_help()
+                sys.exit(1)
+            self._parser_args.func(self._parser_args, subparsers[selected_subparser])
+
+
+    def __parser(self) -> argparse.ArgumentParser:
         """Parse arguments from the command line.
 
         Returns:
-            argparse.Namespace: Args parsed from the command line.
+            argparse.ArgumentParser: Parser Object.
         """        
         
         parser = argparse.ArgumentParser(
@@ -52,30 +60,16 @@ class PortainerDeployer:
             prog='portainerDeployer'
         )
         
-        parser.add_argument('action',
-            metavar='action',
-            action='store',
-            choices=['get', 'deploy', 'redeploy'],
-            help='Action to be executed with the stack. It allows: get, deploy, redeploy',
-            type=str)
+        subparsers = parser.add_subparsers(help='Sub-commands for actions', dest='subparser_name')
 
-        parser.add_argument('--stack',
-            type=str, 
-            help="Docker Compose string for the satack",
-            nargs='?',
-            default=(None if sys.stdin.isatty() else sys.stdin))
-
-
-        parser.add_argument('--path',
-            '-p',
-            action='store',
-            type=str,
-            help='The path to Docker Compose file for the stack',
-            required=False,
-            default=None)
-
+        # Create the parser for the "get" command
+        parser_get = subparsers.add_parser('get', 
+            help='Help for action Get', 
+            description='Get a stack info from portainer.'
+        )
+        
         # Mutually exclusive arguments for --name and --id
-        mutually_exclusive_name_id = parser.add_mutually_exclusive_group()
+        mutually_exclusive_name_id = parser_get.add_mutually_exclusive_group()
 
         mutually_exclusive_name_id.add_argument('--id',
             action='store',
@@ -86,11 +80,42 @@ class PortainerDeployer:
         mutually_exclusive_name_id.add_argument('--name',
             '-n',
             action='store',
-            help="Name for the stack when action is set to 'get' or 'deploy'",   
+            help="Name of the stack to look for",   
             type=str
         )
+
+
+        mutually_exclusive_name_id.add_argument('--all',
+            '-a',
+            action='store_true',
+            help="Gets all stacks in portainer",   
+        )
+
+        parser_get.set_defaults(func=self.__get_sub_command)
+
+
+        # create the parser for the "deploy" command
+        parser_deploy = subparsers.add_parser('deploy', help='Help for action Deploy')
+
+        mutually_exclusive_stack_path = parser_deploy.add_mutually_exclusive_group()
+
+        mutually_exclusive_stack_path.add_argument('--stack',
+            type=str, 
+            help="Docker Compose string for the satack",
+            nargs='?',
+            default=(None if sys.stdin.isatty() else sys.stdin))
+
         
-        parser.add_argument('--modify-stack', 
+        mutually_exclusive_stack_path.add_argument('--path',
+            '-p',
+            action='store',
+            type=str,
+            help='The path to Docker Compose file for the stack',
+            required=False,
+            default=None)
+
+        
+        parser_deploy.add_argument('--modify-stack', 
             '-m',
             action='extend', 
             type=str,
@@ -99,39 +124,52 @@ class PortainerDeployer:
         )
 
 
-        parser.add_argument('--endpoint', 
+        parser_deploy.add_argument('--endpoint', 
             '-e',
             action='store',
             type=int,
             help='Endponint Id in Portainer'
         )
-        
+
+
+        parser_deploy.set_defaults(func=self.__deploy_sub_command)
 
         parser.add_argument('--version', action='version', version='%(prog)s 0.0.1 (Alpha)')
 
-        args = parser.parse_args()
-
-        """"Some validations"""
-        # Validate "action" is set to "get" when using "id" or "name" arguments 
-        if args.id or args.name:
-            if args.action != 'get':
-                parser.error('The arguments "id" and/or "name" must be set with the parameter "action" set as "get"') 
-
-        if args.modify_stack:
-            if args.action != 'deploy':
-                parser.error('The argument "--modify-stack" must be set with the parameter "action" set as "deploy"')
-            
-            if validate_key_value(args.modify_stack):
-                parser.error('There is something wrong with the value(s) of "--modify-stack" argument. Please make sure it follows the syntax key=value.')
-
-        # Validate "action" is set to "deploy" when using "path"  or "stack" arguments
-        if args.action == 'deploy' and not args.stack and not args.path:
-            parser.error('You did not provided a Path or Stack string, please read the help instruct in order to perform this action.')
-
-            if args.path and os.path.isfile(args.path):
-                parser.error('The specified file does not exist.')
+        if len(sys.argv) == 1:
+            parser.print_help()
+            sys.exit(1)
         
-        return args
+        return parser, parser_get, parser_deploy
+
+
+    def __get_sub_command(self , args: argparse.Namespace, parser: argparse.ArgumentParser):
+        if args.all:
+            self.get_stack()
+        else:
+            self.get_stack(name=args.name, stack_id=args.id)
+
+
+    def __deploy_sub_command(self, args: argparse.Namespace, parser: argparse.ArgumentParser):
+        if args.stack:
+            if args.modify_stack:
+                parser.error('You can not use "--modify-stack" argument with "--stack" argument. It is only available for "--path" argument.')
+            self.post_stack_from_string(stack=args.stack, endpoint_id=args.endpoint)
+        
+        elif args.path:
+            if not os.path.isfile(args.path):
+                parser.error('The specified file does not exist.')
+
+            if args.modify_stack:
+                for pair in args.modify_stack:
+                    if validate_key_value(pair=pair):
+
+                        keys, new_value = pair.split('=')
+                        edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
+                        if edited:
+                            parser.error(edited)
+
+            self.post_stack_from_file(path=args.path, endpoint_id=args.endpoint)
 
 
     def get_stack(self, name:str=None, stack_id:int=None):
@@ -142,8 +180,8 @@ class PortainerDeployer:
             stack_id (int, optional): Id of the stack in Portainer. Defaults to None.
         """
         r = requests.get(
-            f"{self.portainer_connection}/api/stacks", 
-            headers=self.connection_headers,
+            f"{self.__portainer_connection}/api/stacks", 
+            headers=self.__connection_headers,
             verify=False
         )
         data = r.json()
@@ -171,49 +209,37 @@ class PortainerDeployer:
                     print(spacing_str.format(*stack))
 
 
-    def post_stack(self, stack: str):
+    def post_stack_from_str(self, stack: str):
        pass
 
-    def post_stack_from_file(self, path: str):
+
+    def post_stack_from_file(self, path: str, endpoint_id: int, name: str = generate_random_hash()):
         # Open file
         with open(path, 'r') as f:
             form_data = {
-                'Name': self.args.name if self.args.name else generate_random_hash()
+                'Name': name
             }
+            
             params = {
                 "type": 2,
-                "endpointId": 2,
+                "endpointId": endpoint_id,
                 "method": "file"
             }
-            r = requests.post(self.portainer_connection + '/api/stacks',
+            
+            r = requests.post(self.__portainer_connection + '/api/stacks',
                  data=form_data, 
                  params=params,
                  files={'file': f},
-                 headers=self.connection_headers, 
+                 headers=self.__connection_headers, 
                  verify=False
             )
             print(r.status_code, r.text)
     
+
     def update_stack(self, stack_id: str, stack: str):
+        #TODO: Implement
         pass
 
-    def main(self):
-        args = self.args
-        
-        if args.action == 'get':
-            self.get_stack(name=args.name, stack_id=args.id)
-        
-        elif args.action == 'deploy':
-            # Validate just one of the arguments is set
-            
-            
-            if args.path:
-                if not os.path.exists(args.path):
-                    sys.exit('Error: The specified file does not exist.')
-
-                self.post_stack_from_file(args.path)
-            else:
-                self.post_stack(stack=args.stack)
 
 if __name__ == '__main__':
     PortainerDeployer()

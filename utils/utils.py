@@ -1,5 +1,6 @@
 from datetime import datetime as dt
 from hashlib import sha256
+import re
 from yaml import Loader, load, dump
 from re import match
 
@@ -43,7 +44,8 @@ def recursive_dict(dictionary: dict, keys: list, new_value=None) -> dict:
     return dictionary
 
 
-def edit_yml_file(path: str, keys: str, new_value: str):
+
+def edit_yml_file(path: str, key_group:str, new_value: str) -> str:
     """Edit a yaml file base in a chain of keys in dot notation. i.e. 'a.b.c'
 
     Args:
@@ -52,37 +54,35 @@ def edit_yml_file(path: str, keys: str, new_value: str):
         new_value (str): New value to be set for the last key in the keys.
     """    
     data = {}
+    keys = key_group.split('.') if '.' in keys else [keys]
+    
     try:
         with open(path, 'r') as f:
             data = load(f, Loader=Loader)
-            keys = keys.split('.') if '.' in keys else [keys]
-
+        
         with open(path, 'w') as f:    
             try:
                 recursive_dict(data, keys, new_value)
             
             except KeyError:
-                print(f"error: Wrong key secuence {keys}, not found in {path}.")
-                return
+                return f"Wrong key secuence {keys}, not found in {path}."
 
-            dump(data, f) 
+        dump(data, f) 
     
     except FileNotFoundError:
-        print(f"error: File {path} not found.")
-        return
+        return f"File {path} not found."
 
 
-def validate_key_value(pairs: list) -> bool:
+def validate_key_value(pair: str) -> bool:
     """Validate a list of key=value pairs, where key in dot notation. i.e. a.b.c=value1 d=value2
 
     Args:
-        pairs (list): List of key=value pairs.
+        pair (str): A key=value pair.
 
     Returns:
-        bool: True if the list is valid, False otherwise.
+        bool: True if the pair is valid, False otherwise.
     """    
-    for key in pairs:
-        if not match(r'^[a-zA-Z0-9_\.]+=[a-zA-Z0-9_\.]+$', key):
-            return False
+    if not match(r'^[a-zA-Z0-9_\.]+=[a-zA-Z0-9_\.]+$', pair):
+        return False
 
     return True
