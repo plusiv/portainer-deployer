@@ -195,8 +195,8 @@ class PortainerDeployer:
             default=None)
 
         
-        parser_deploy.add_argument('--modify-stack', 
-            '-m',
+        parser_deploy.add_argument('--update-keys', 
+            '-u',
             action='extend', 
             type=str,
             nargs='*',
@@ -232,16 +232,16 @@ class PortainerDeployer:
 
     def __deploy_sub_command(self, args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
         if args.stack:
-            if args.modify_stack:
-                parser.error('You can not use "--modify-stack" argument with "--stack" argument. It is only available for "--path" argument.')
+            if args.update_keys:
+                parser.error('You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
             self.api_consumer.post_stack_from_str(stack=args.stack, endpoint_id=args.endpoint)
         
         elif args.path:
             if not os.path.isfile(args.path):
                 parser.error('The specified file does not exist.')
 
-            if args.modify_stack:
-                for pair in args.modify_stack:
+            if args.update_keys:
+                for pair in args.update_keys:
                     if validate_key_value(pair=pair):
 
                         keys, new_value = pair.split('=')
