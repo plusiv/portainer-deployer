@@ -120,7 +120,7 @@ class PortainerDeployer:
         """Create the main parser.
 
         Returns:
-            parsers (tuple): Tuple of all parsers.
+            parser (argparse.ArgumentParser): Main parser.
         """
 
         parser = argparse.ArgumentParser(
@@ -228,11 +228,16 @@ class PortainerDeployer:
 
         Args:
             args (argparse.Namespace): Parsed arguments.
-            parser (argparse.ArgumentParser): Parser Object.
         """        
         pass
 
     def __get_sub_command(self , args: argparse.Namespace) -> None:
+        """Get sub-command default function. Excutes get functions according given arguments.
+
+        Args:
+            args (argparse.Namespace): Parsed arguments. 
+        """        
+
         if args.all:
             self.api_consumer.get_stack()
         else:
@@ -240,6 +245,12 @@ class PortainerDeployer:
 
 
     def __deploy_sub_command(self, args: argparse.Namespace) -> None:
+        """Deploy sub-command default function. Excutes deploy functions according given arguments.
+
+        Args:
+            args (argparse.Namespace): Parsed arguments. 
+        """
+
         if args.stack:
             if args.update_keys:
                 self.parser.error('You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
