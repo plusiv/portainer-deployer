@@ -11,7 +11,6 @@ class PortainerAPIConsumer:
     def __init__(self, api_config_path: str) -> None:
         PATH_TO_CONFIG = api_config_path
 
-
         # Load config
         self._portainer_config = ConfigManager(PATH_TO_CONFIG, default_section='PORTAINER')
 
@@ -268,6 +267,9 @@ class PortainerDeployer:
                 section, key = section_key  
                 config.set_var(key=key, new_value=value, section=section)
 
+            # Exit with success
+            sys.exit(0)
+
         elif args.get:
             pair = args.get
             splited = pair.split('.')
@@ -276,8 +278,11 @@ class PortainerDeployer:
             
             section,key = splited
             print(config.get_var(key=key, section=section))
+            
+            # Exit with success
+            sys.exit(0)
         else:
-            sys.exit(1)
+            self._parser.error('No config action given.')
 
 
     def __get_sub_command(self , args: argparse.Namespace) -> None:
@@ -291,6 +296,9 @@ class PortainerDeployer:
             self.api_consumer.get_stack()
         else:
             self.api_consumer.get_stack(name=args.name, stack_id=args.id)
+        
+        # Exit with success
+        sys.exit(0)
 
 
     def __deploy_sub_command(self, args: argparse.Namespace) -> None:
@@ -324,6 +332,9 @@ class PortainerDeployer:
                         self.parser.error(f'Invalid key=value pair in --update-keys argument: {pair}')
 
             self.api_consumer.post_stack_from_file(path=args.path, name=args.name, endpoint_id=args.endpoint)
+        
+        # Exit with success
+        sys.exit(0)
 
 
 if __name__ == '__main__':
