@@ -8,7 +8,7 @@ from config.config import ConfigManager
 
 class PortainerAPIConsumer:
     
-    def __init__(self, api_config_path: str):
+    def __init__(self, api_config_path: str) -> None:
         PATH_TO_CONFIG = api_config_path
 
 
@@ -26,7 +26,7 @@ class PortainerAPIConsumer:
         self.__connection_headers = {'X-API-Key': self._portainer_config.token}
 
 
-    def get_stack(self, name:str=None, stack_id:int=None):
+    def get_stack(self, name:str=None, stack_id:int=None) -> None:
         """_summary_: Get a stack from portainer
 
         Args:
@@ -107,7 +107,7 @@ class PortainerAPIConsumer:
 class PortainerDeployer:
     """Manage Portainer's Stacks usgin its API throught Command Line.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the PortainerDeployer class and runs the main function.
         """        
 
@@ -247,7 +247,7 @@ class PortainerDeployer:
         return parser
         
 
-    def __config_sub_command(self, args):
+    def __config_sub_command(self, args) -> None:
         """Config sub-command.
 
         Args:
