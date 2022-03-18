@@ -7,7 +7,8 @@ from utils.utils import *
 from config.config import ConfigManager
 
 class PortainerAPIConsumer:
-    
+    """Class to manage the Portainer API
+    """    
     def __init__(self, api_config_path: str) -> None:
         PATH_TO_CONFIG = api_config_path
 
@@ -26,7 +27,7 @@ class PortainerAPIConsumer:
 
 
     def get_stack(self, name:str=None, stack_id:int=None) -> None:
-        """_summary_: Get a stack from portainer
+        """Get a stack from portainer
 
         Args:
             name (str, optional): Name of the stack in Portainer. Defaults to None.
@@ -68,6 +69,16 @@ class PortainerAPIConsumer:
 
 
     def post_stack_from_file(self, path: str, endpoint_id: int, name: str) -> bool:
+        """Post a stack from a file.
+
+        Args:
+            path (str): Path to the file.
+            endpoint_id (int): Id of the endpoint in Portainer.
+            name (str): Name of the stack in Portainer.
+
+        Returns:
+            bool: True if the stack was posted successfuly, False otherwise.
+        """        
         name = name if name else generate_random_hash()
         # Open file
         with open(path, 'r') as f:
