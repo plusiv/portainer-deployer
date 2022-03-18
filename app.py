@@ -111,27 +111,18 @@ class PortainerDeployer:
         
         # Set arguments
         self._main_parser, self._get_parser, self._deploy_parser, self._config_parser = self.__parser()
-        self._parser_args = self._main_parser.parse_args()
+        parser_args = self._main_parser.parse_args(args=None if sys.argv[2:] else [sys.argv[1], '-h'])
         
-        subparsers = {'get': self._get_parser, 'deploy': self._deploy_parser, 'config': self._config_parser}
-        print('prog is ', self._get_parser.prog)
-
-        # Run the default function
-        selected_subparser = self._parser_args.subparser_name
-        if selected_subparser:
-            if len(sys.argv) == 2:
-                subparsers[selected_subparser].print_help()
-                sys.exit(1)
-            self._parser_args.func(self._parser_args, subparsers[selected_subparser])
+        parser_args.func(parser_args)
 
 
     def __parser(self) -> argparse.ArgumentParser:
-        """Parse arguments from the command line.
+        """Create the main parser.
 
         Returns:
-            argparse.ArgumentParser: Parser Object.
-        """        
-        
+            parsers (tuple): Tuple of all parsers.
+        """
+
         parser = argparse.ArgumentParser(
             description='Deploy stacks to portainer',
             prog='portainerDeployer'
@@ -139,7 +130,8 @@ class PortainerDeployer:
         
         subparsers = parser.add_subparsers(help='Sub-commands for actions', dest='subparser_name')
 
-        # Create the parser for the "get" command
+        
+        # ========================== Sub-commands for get ==========================
         parser_get = subparsers.add_parser('get', 
             help='Help for action Get', 
             description='Get a stack info from portainer.'
@@ -171,7 +163,7 @@ class PortainerDeployer:
         parser_get.set_defaults(func=self.__get_sub_command)
 
 
-        # create the parser for the "deploy" command
+        # ========================== Sub-commands for deploy ==========================
         parser_deploy = subparsers.add_parser('deploy', help='Help for action Deploy')
 
         mutually_exclusive_stack_path = parser_deploy.add_mutually_exclusive_group()
@@ -211,6 +203,7 @@ class PortainerDeployer:
 
         parser_deploy.set_defaults(func=self.__deploy_sub_command)
 
+        # ========================== Sub-commands for config ==========================
         parser_config = subparsers.add_parser('config', help='Help for Config sub-command')
 
         parser_config.add_argument('set',
@@ -226,10 +219,12 @@ class PortainerDeployer:
             parser.print_help()
             sys.exit(1)
         
-        return parser, parser_get, parser_deploy, parser_config
+        parsers = (parser, parser_get, parser_deploy, parser_config)
+
+        return parsers
         
 
-    def __config_sub_command(self, args, parser):
+    def __config_sub_command(self, args):
         """Config sub-command.
 
         Args:
@@ -238,22 +233,22 @@ class PortainerDeployer:
         """        
         pass
 
-    def __get_sub_command(self , args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    def __get_sub_command(self , args: argparse.Namespace) -> None:
         if args.all:
             self.api_consumer.get_stack()
         else:
             self.api_consumer.get_stack(name=args.name, stack_id=args.id)
 
 
-    def __deploy_sub_command(self, args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    def __deploy_sub_command(self, args: argparse.Namespace) -> None:
         if args.stack:
             if args.update_keys:
-                parser.error('You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
+                self._main_parser.error('You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
             self.api_consumer.post_stack_from_str(stack=args.stack, endpoint_id=args.endpoint)
         
         elif args.path:
             if not os.path.isfile(args.path):
-                parser.error('The specified file does not exist.')
+                self._main_parser.error('The specified file does not exist.')
 
             if args.update_keys:
                 for pair in args.update_keys:
@@ -262,7 +257,7 @@ class PortainerDeployer:
                         keys, new_value = pair.split('=')
                         edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
                         if edited:
-                            parser.error(edited)
+                            self._main_parser.error(edited)
 
             self.api_consumer.post_stack_from_file(path=args.path, endpoint_id=args.endpoint)
 
