@@ -67,7 +67,7 @@ class ConfigManager:
         self.section = None
 
     @_use_default_section
-    def set_var(self, key: str, value: str, section: str) -> bool:
+    def set_var(self, key: str, new_value: str, section: str) -> bool:
         """Set a value in the config file.
 
         Args:
@@ -84,7 +84,7 @@ class ConfigManager:
         try:
             config = configparser.ConfigParser()
             config.read(self._path_to_config_file)
-            config[section][key] = value
+            config[section.upper()][key] = new_value
             with open(self._path_to_config_file, 'w') as configfile:
                 config.write(configfile)
             return True
@@ -110,7 +110,7 @@ class ConfigManager:
         try:
             config = configparser.ConfigParser()
             config.read(self._path_to_config_file)
-            return config[section][key]
+            return config[section.upper()][key]
 
         except configparser.Error as e:
             raise configparser.Error(f"Error: {e}")
@@ -157,3 +157,4 @@ class ConfigManager:
 
         except configparser.Error as e:
             raise configparser.Error(f"Error: {e}")
+

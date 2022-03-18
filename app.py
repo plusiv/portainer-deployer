@@ -104,10 +104,10 @@ class PortainerDeployer:
 
         # Load .env file
         env_file = ConfigManager('.env', default_section='CONFIG')
-        PATH_TO_CONFIG = env_file.path_to_config
+        self.PATH_TO_CONFIG = env_file.path_to_config
 
         # Set API consummer object
-        self.api_consumer = PortainerAPIConsumer(api_config_path=PATH_TO_CONFIG)
+        self.api_consumer = PortainerAPIConsumer(api_config_path=self.PATH_TO_CONFIG)
         
         # Set arguments
         self._parser = self.__parser()
@@ -128,6 +128,7 @@ class PortainerDeployer:
             prog='portainerDeployer'
         )
         
+        parser.add_argument('--version', action='version', version='%(prog)s 0.0.1 (Alpha)')
         subparsers = parser.add_subparsers(help='Sub-commands for actions', dest='subparser_name')
 
         
@@ -203,17 +204,26 @@ class PortainerDeployer:
 
         parser_deploy.set_defaults(func=self.__deploy_sub_command)
 
+
         # ========================== Sub-commands for config ==========================
         parser_config = subparsers.add_parser('config', help='Help for Config sub-command')
+        
+        mutually_exclusive_config = parser_config.add_mutually_exclusive_group() 
 
-        parser_config.add_argument('set',
-            action='store',
+        mutually_exclusive_config.add_argument('--set',
+            '-s',
+            action='extend',
+            nargs='+',
             type=str,
             help='Set a config value')
 
-        parser_config.set_defaults(func=self.__config_sub_command)
+        mutually_exclusive_config.add_argument('--get',
+            '-g',
+            action='store',
+            type=str,
+            help='Get a config value')
 
-        parser.add_argument('--version', action='version', version='%(prog)s 0.0.1 (Alpha)')
+        parser_config.set_defaults(func=self.__config_sub_command)
 
         # Print help if no sub-command is given
         if len(sys.argv) == 1:
@@ -228,8 +238,33 @@ class PortainerDeployer:
 
         Args:
             args (argparse.Namespace): Parsed arguments.
-        """        
-        pass
+        """
+
+        config = ConfigManager(self.PATH_TO_CONFIG)
+        if args.set:
+            for pair in args.set:
+                splited = pair.split('=')
+                if len(splited) != 2:
+                    self._parser.error(f'Invalid config pair: {pair}')
+                
+                value = splited[1]
+                section_key = splited[0].split('.')
+                if len(section_key) != 2:
+                    self._parser.error(f'Invalid config pair: {pair}')
+                section, key = section_key  
+                config.set_var(key=key, new_value=value, section=section)
+
+        elif args.get:
+            pair = args.get
+            splited = pair.split('.')
+            if len(splited) != 2:
+                self._parser.error(f'Invalid config pair: {pair}')
+            
+            section,key = splited
+            print(config.get_var(key=key, section=section))
+        else:
+            sys.exit(1)
+
 
     def __get_sub_command(self , args: argparse.Namespace) -> None:
         """Get sub-command default function. Excutes get functions according given arguments.
