@@ -16,7 +16,8 @@ class PortainerAPIConsumer:
         self._portainer_config = ConfigManager(PATH_TO_CONFIG, default_section='PORTAINER')
 
         # Set non-ssl connection
-        if not self._portainer_config.get_boolean_var('SSL') and self._portainer_config.url.split('://')[0] == 'https':
+        self.use_ssl = self._portainer_config.get_boolean_var('SSL')
+        if not self.use_ssl and self._portainer_config.url.split('://')[0] == 'https':
             # Suppress only the single warning from urllib3 needed.
             requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
@@ -85,7 +86,7 @@ class PortainerAPIConsumer:
                  params=params,
                  files={'file': f},
                  headers=self.__connection_headers, 
-                 verify=False
+                 verify=self.use_ssl
             )
             print(r.status_code, r.text)
     
