@@ -117,7 +117,7 @@ class PortainerDeployer:
 
 
     def __parser(self) -> argparse.ArgumentParser:
-        """Create the main parser.
+        """Parse and handle given arguments.
 
         Returns:
             parser (argparse.ArgumentParser): Main parser.
