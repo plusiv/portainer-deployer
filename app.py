@@ -1,30 +1,28 @@
 import argparse
-import configparser
 import sys
 import os
 import requests
 from urllib3.exceptions import InsecureRequestWarning
 from utils.utils import *
-
+from config.config import ConfigManager
 
 class PortainerAPIConsumer:
     
-    def __init__(self, path_to_config: str):
-        PATH_TO_CONFIG = path_to_config
+    def __init__(self, api_config_path: str):
+        PATH_TO_CONFIG = api_config_path
+
 
         # Load config
-        config = configparser.ConfigParser()
-        config.read(PATH_TO_CONFIG)
-        self._portainer_config = config['PORTAINER']
+        self._portainer_config = ConfigManager(PATH_TO_CONFIG, default_section='PORTAINER')
 
         # Set non-ssl connection
-        if not self._portainer_config.getboolean('SSL') and self._portainer_config['URL'].split('://')[0] == 'https':
+        if not self._portainer_config.get_boolean_var('SSL') and self._portainer_config.url.split('://')[0] == 'https':
             # Suppress only the single warning from urllib3 needed.
             requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
         # Set portainer connection parameters
-        self.__portainer_connection_str = f"{self._portainer_config['URL']}:{self._portainer_config['PORT']}" 
-        self.__connection_headers = {'X-API-Key': self._portainer_config['TOKEN']}
+        self.__portainer_connection_str = f"{self._portainer_config.url}:{self._portainer_config.port}" 
+        self.__connection_headers = {'X-API-Key': self._portainer_config.token}
 
 
     def get_stack(self, name:str=None, stack_id:int=None):
@@ -98,26 +96,25 @@ class PortainerAPIConsumer:
 
 
 class PortainerDeployer:
-    """Manage Portainer's Stacks usgin its API.
+    """Manage Portainer's Stacks usgin its API throught Command Line.
     """
     def __init__(self):
         """Initialize the PortainerDeployer class and runs the main function.
         """        
-        # Load .env file
-        env_file = configparser.ConfigParser()
-        env_file.read('.env')
-        PATH_TO_CONFIG = env_file['CONFIG']['PATH_TO_CONFIG']
 
+        # Load .env file
+        env_file = ConfigManager('.env', default_section='CONFIG')
+        PATH_TO_CONFIG = env_file.path_to_config
 
         # Set API consummer object
-        self.api_consumer = PortainerAPIConsumer(path_to_config=PATH_TO_CONFIG)
+        self.api_consumer = PortainerAPIConsumer(api_config_path=PATH_TO_CONFIG)
         
         # Set arguments
-        self._main_parser, self._get_parser, self._deploy_parser, = self.__parser()
+        self._main_parser, self._get_parser, self._deploy_parser, self._config_parser = self.__parser()
         self._parser_args = self._main_parser.parse_args()
-
         
-        subparsers = {'get': self._get_parser, 'deploy': self._deploy_parser}
+        subparsers = {'get': self._get_parser, 'deploy': self._deploy_parser, 'config': self._config_parser}
+        print('prog is ', self._get_parser.prog)
 
         # Run the default function
         selected_subparser = self._parser_args.subparser_name
@@ -214,14 +211,32 @@ class PortainerDeployer:
 
         parser_deploy.set_defaults(func=self.__deploy_sub_command)
 
+        parser_config = subparsers.add_parser('config', help='Help for Config sub-command')
+
+        parser_config.add_argument('set',
+            action='store',
+            type=str,
+            help='Set a config value')
+
+        parser_config.set_defaults(func=self.__config_sub_command)
+
         parser.add_argument('--version', action='version', version='%(prog)s 0.0.1 (Alpha)')
 
         if len(sys.argv) == 1:
             parser.print_help()
             sys.exit(1)
         
-        return parser, parser_get, parser_deploy
+        return parser, parser_get, parser_deploy, parser_config
+        
 
+    def __config_sub_command(self, args, parser):
+        """Config sub-command.
+
+        Args:
+            args (argparse.Namespace): Parsed arguments.
+            parser (argparse.ArgumentParser): Parser Object.
+        """        
+        pass
 
     def __get_sub_command(self , args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
         if args.all:
@@ -250,8 +265,6 @@ class PortainerDeployer:
                             parser.error(edited)
 
             self.api_consumer.post_stack_from_file(path=args.path, endpoint_id=args.endpoint)
-
-
 
 
 if __name__ == '__main__':
