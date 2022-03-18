@@ -68,7 +68,7 @@ class PortainerAPIConsumer:
        pass
 
 
-    def post_stack_from_file(self, path: str, endpoint_id: int, name: str = generate_random_hash()):
+    def post_stack_from_file(self, path: str, endpoint_id: int, name: str = generate_random_hash()) -> bool:
         # Open file
         with open(path, 'r') as f:
             form_data = {
@@ -81,14 +81,22 @@ class PortainerAPIConsumer:
                 "method": "file"
             }
             
-            r = requests.post(self.__portainer_connection_str + '/api/stacks',
+            response = requests.post(self.__portainer_connection_str + '/api/stacks',
                  data=form_data, 
                  params=params,
                  files={'file': f},
                  headers=self.__connection_headers, 
                  verify=self.use_ssl
             )
-            print(r.status_code, r.text)
+
+            print(response.status_code, response.text)
+            if response.status_code == 201 or response.status_code == 200:
+                print(f"Stack {name} created successfully.")
+                return True
+            
+            else:
+                print(f"Stack {name} could not be created.")
+                return False
     
 
     def update_stack(self, stack_id: str, stack: str):
@@ -190,7 +198,7 @@ class PortainerDeployer:
             '-u',
             action='extend', 
             type=str,
-            nargs='*',
+            nargs='+',
             help='Modify the stack file/string by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d=value2',
         )
 
@@ -287,6 +295,10 @@ class PortainerDeployer:
             args (argparse.Namespace): Parsed arguments. 
         """
 
+        # Validate endpoint set
+        if args.endpoint is None:
+            self._parser.error('Endpoint is not set')
+
         if args.stack:
             if args.update_keys:
                 self.parser.error('You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
@@ -299,11 +311,12 @@ class PortainerDeployer:
             if args.update_keys:
                 for pair in args.update_keys:
                     if validate_key_value(pair=pair):
-
                         keys, new_value = pair.split('=')
                         edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
                         if edited:
                             self.parser.error(edited)
+                    else:
+                        self.parser.error(f'Invalid key=value pair in --update-keys argument: {pair}')
 
             self.api_consumer.post_stack_from_file(path=args.path, endpoint_id=args.endpoint)
 

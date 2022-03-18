@@ -54,7 +54,7 @@ def edit_yml_file(path: str, key_group:str, new_value: str) -> str:
         new_value (str): New value to be set for the last key in the keys.
     """    
     data = {}
-    keys = key_group.split('.') if '.' in keys else [keys]
+    keys = key_group.split('.')
     
     try:
         with open(path, 'r') as f:
@@ -67,7 +67,7 @@ def edit_yml_file(path: str, key_group:str, new_value: str) -> str:
             except KeyError:
                 return f"Wrong key secuence {keys}, not found in {path}."
 
-        dump(data, f) 
+            dump(data, f) 
     
     except FileNotFoundError:
         return f"File {path} not found."
@@ -82,7 +82,7 @@ def validate_key_value(pair: str) -> bool:
     Returns:
         bool: True if the pair is valid, False otherwise.
     """    
-    if not match(r'^[a-zA-Z0-9_\.]+=[a-zA-Z0-9_\.]+$', pair):
-        return False
+    if match(r'^[a-zA-Z0-9_\.]+=[a-zA-Z0-9_\.\-]+$', pair):
+        return True
 
-    return True
+    return False
