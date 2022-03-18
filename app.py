@@ -110,8 +110,8 @@ class PortainerDeployer:
         self.api_consumer = PortainerAPIConsumer(api_config_path=PATH_TO_CONFIG)
         
         # Set arguments
-        self._main_parser, self._get_parser, self._deploy_parser, self._config_parser = self.__parser()
-        parser_args = self._main_parser.parse_args(args=None if sys.argv[2:] else [sys.argv[1], '-h'])
+        self._parser = self.__parser()
+        parser_args = self._parser.parse_args(args=None if sys.argv[2:] else [sys.argv[1], '-h'])
         
         parser_args.func(parser_args)
 
@@ -215,13 +215,12 @@ class PortainerDeployer:
 
         parser.add_argument('--version', action='version', version='%(prog)s 0.0.1 (Alpha)')
 
+        # Print help if no sub-command is given
         if len(sys.argv) == 1:
             parser.print_help()
             sys.exit(1)
         
-        parsers = (parser, parser_get, parser_deploy, parser_config)
-
-        return parsers
+        return parser
         
 
     def __config_sub_command(self, args):
@@ -243,12 +242,12 @@ class PortainerDeployer:
     def __deploy_sub_command(self, args: argparse.Namespace) -> None:
         if args.stack:
             if args.update_keys:
-                self._main_parser.error('You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
+                self.parser.error('You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
             self.api_consumer.post_stack_from_str(stack=args.stack, endpoint_id=args.endpoint)
         
         elif args.path:
             if not os.path.isfile(args.path):
-                self._main_parser.error('The specified file does not exist.')
+                self.parser.error('The specified file does not exist.')
 
             if args.update_keys:
                 for pair in args.update_keys:
@@ -257,7 +256,7 @@ class PortainerDeployer:
                         keys, new_value = pair.split('=')
                         edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
                         if edited:
-                            self._main_parser.error(edited)
+                            self.parser.error(edited)
 
             self.api_consumer.post_stack_from_file(path=args.path, endpoint_id=args.endpoint)
 
