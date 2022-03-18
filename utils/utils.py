@@ -24,7 +24,7 @@ def format_stack_list(stacks: list):
         yield stack_info
 
 def generate_random_hash() -> str:
-    """Generate a random hash.
+    """Generate a pseudo-random hash.
 
     Returns:
         str: Random hash.

@@ -68,11 +68,12 @@ class PortainerAPIConsumer:
        pass
 
 
-    def post_stack_from_file(self, path: str, endpoint_id: int, name: str = generate_random_hash()) -> bool:
+    def post_stack_from_file(self, path: str, endpoint_id: int, name: str) -> bool:
+        name = name if name else generate_random_hash()
         # Open file
         with open(path, 'r') as f:
             form_data = {
-                'Name': name
+                'Name': name 
             }
             
             params = {
@@ -89,13 +90,12 @@ class PortainerAPIConsumer:
                  verify=self.use_ssl
             )
 
-            print(response.status_code, response.text)
-            if response.status_code == 201 or response.status_code == 200:
+            if response.status_code == 200:
                 print(f"Stack {name} created successfully.")
                 return True
             
             else:
-                print(f"Stack {name} could not be created.")
+                print(f"Error: {response.json()['message']}. {response.json()['details']} \n\nStack {name} could not be created.")
                 return False
     
 
@@ -193,6 +193,11 @@ class PortainerDeployer:
             required=False,
             default=None)
 
+        parser_deploy.add_argument('--name',
+            '-n',
+            action='store',
+            help="Name of the stack to look for",
+        )
         
         parser_deploy.add_argument('--update-keys', 
             '-u',
@@ -318,7 +323,7 @@ class PortainerDeployer:
                     else:
                         self.parser.error(f'Invalid key=value pair in --update-keys argument: {pair}')
 
-            self.api_consumer.post_stack_from_file(path=args.path, endpoint_id=args.endpoint)
+            self.api_consumer.post_stack_from_file(path=args.path, name=args.name, endpoint_id=args.endpoint)
 
 
 if __name__ == '__main__':
