@@ -2,6 +2,7 @@ import argparse
 import sys
 import os
 import requests
+from json import loads
 from urllib3.exceptions import InsecureRequestWarning
 from utils.utils import *
 from config.config import ConfigManager
@@ -337,6 +338,11 @@ class PortainerDeployer:
                     if validate_key_value(pair=pair):
                         keys, new_value = pair.split('=')
                         edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
+                        if edited:
+                            self.parser.error(edited)
+                    elif validate_key_value_lst(pair=pair):
+                        keys, new_value = pair.split('=')
+                        edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value[1:-1].split(','))
                         if edited:
                             self.parser.error(edited)
                     else:

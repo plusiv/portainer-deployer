@@ -74,7 +74,7 @@ def edit_yml_file(path: str, key_group:str, new_value: str) -> str:
 
 
 def validate_key_value(pair: str) -> bool:
-    """Validate a list of key=value pairs, where key in dot notation. i.e. a.b.c=value1 d=value2
+    """Validate a key=value pair, where key is in dot notation. i.e. a.b.c=value1 d=value2
 
     Args:
         pair (str): A key=value pair.
@@ -82,7 +82,21 @@ def validate_key_value(pair: str) -> bool:
     Returns:
         bool: True if the pair is valid, False otherwise.
     """    
-    if match(r'^[a-zA-Z0-9_\.]+=[a-zA-Z0-9_\.\-]+$', pair):
+    if match(r'^[a-zA-Z0-9_\.]+=[^\[\]]+$', pair):
+        return True
+
+    return False
+
+def validate_key_value_lst(pair: str) -> bool:
+    """Validate a key=value pair, where value is a list of values. i.e. a.b.c=[a,b,d] d=[1,2,a,c]
+
+    Args:
+        pair (str): A key=value pair.
+
+    Returns:
+        bool: True if the pair is valid, False otherwise.
+    """    
+    if match(r'^[a-zA-Z0-9_\.]+=\[[^\]]*]+$', pair):
         return True
 
     return False
