@@ -41,7 +41,7 @@ This is a command line tool built in Python to use the [Portainer API]() to depl
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 
-Since it is a command line tool, you can inoke the application by running `portainer-deployer` after installation.
+Since __Portainer Deployer__ is a command line tool, you can inoke the application by running `portainer-deployer` after installation.
 
 You will need to set some params such as the configuration of connection to [Portainer API]() before start using the application. This can be easly managed by running `portainer-deployer config <config arguments goes here>`. We'll go more in deep later in this doc.
 
@@ -79,9 +79,21 @@ until finished
 
 End with an example of getting some data out of the system or using it for a little demo.
 
-## 🔧 Running the tests <a name = "tests"></a>
+## 🔧 Configuring <a name = "configuring"></a>
 
-Explain how to run the automated tests for this system.
+First thing you need to set after installation is your Portainer Connection. There's two ways to manage configurations, the first one is by using the sub-command `config` to set all necessary variables. The another one is by editing directly the _config file_ located at `/path/to/config/file`. The first one mentioned is strongly recommended to avoid misconfigurations.
+
+By sending `portainer-deployer config --help` in your shell you will receive:
+```shell
+$ portainer-deployer config -h                                                                                                                           
+usage: portainerDeployer config [-h] [--set SET [SET ...] | --get GET]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --set SET [SET ...], -s SET [SET ...]
+                        Set a config value
+  --get GET, -g GET     Get a config value
+```
 
 ### Break down into end to end tests
 
