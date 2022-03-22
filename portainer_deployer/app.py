@@ -4,7 +4,7 @@ import os
 import requests
 from json import loads
 from urllib3.exceptions import InsecureRequestWarning
-from utils.utils import *
+from utils.utils import edit_yml_file, format_stack_list, generate_random_hash, validate_key_value, validate_key_value_lst 
 from config.config import ConfigManager
 
 class PortainerAPIConsumer:
@@ -131,9 +131,11 @@ class PortainerDeployer:
         
         # Set arguments
         self._parser = self.__parser()
-        parser_args = self._parser.parse_args(args=None if sys.argv[2:] else [sys.argv[1], '-h'])
+        parser_args = self._parser.parse_args(args=None if len(sys.argv) > 2 else [sys.argv[1], '-h'] if len(sys.argv) == 2 else ['-h'])
         
         parser_args.func(parser_args)
+
+        print(sys.argv)
 
 
     def __parser(self) -> argparse.ArgumentParser:
@@ -249,12 +251,7 @@ class PortainerDeployer:
             help='Get a config value')
 
         parser_config.set_defaults(func=self.__config_sub_command)
-
-        # Print help if no sub-command is given
-        if len(sys.argv) == 1:
-            parser.print_help()
-            sys.exit(1)
-        
+ 
         return parser
         
 
@@ -353,6 +350,19 @@ class PortainerDeployer:
         # Exit with success
         sys.exit(0)
 
+
+
+class PortainerDeployerTest(PortainerDeployer):
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def parser(self):
+        return self._parser
+
+    @property
+    def args(self, args: list = []):
+        return vars(self._parser.parse_args(args))
 
 if __name__ == '__main__':
     PortainerDeployer()
