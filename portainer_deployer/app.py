@@ -128,14 +128,18 @@ class PortainerDeployer:
 
         # Set API consummer object
         self.api_consumer = PortainerAPIConsumer(api_config_path=self.PATH_TO_CONFIG)
+
+        self.parser = self.__parser()
         
+
+    def run(self):
+        """Run the main function.
+        """        
         # Set arguments
-        self._parser = self.__parser()
-        parser_args = self._parser.parse_args(args=None if len(sys.argv) > 2 else [sys.argv[1], '-h'] if len(sys.argv) == 2 else ['-h'])
+        self.parser = self.__parser()
+        parser_args = self.parser.parse_args(args=None if len(sys.argv) > 2 else [sys.argv[1], '-h'] if len(sys.argv) == 2 else ['-h'])
         
         parser_args.func(parser_args)
-
-        print(sys.argv)
 
 
     def __parser(self) -> argparse.ArgumentParser:
@@ -267,12 +271,12 @@ class PortainerDeployer:
             for pair in args.set:
                 splited = pair.split('=')
                 if len(splited) != 2:
-                    self._parser.error(f'Invalid config pair: {pair}')
+                    self.parser.error(f'Invalid config pair: {pair}')
                 
                 value = splited[1]
                 section_key = splited[0].split('.')
                 if len(section_key) != 2:
-                    self._parser.error(f'Invalid config pair: {pair}')
+                    self.parser.error(f'Invalid config pair: {pair}')
                 section, key = section_key  
                 config.set_var(key=key, new_value=value, section=section)
 
@@ -283,7 +287,7 @@ class PortainerDeployer:
             pair = args.get
             splited = pair.split('.')
             if len(splited) != 2:
-                self._parser.error(f'Invalid config pair: {pair}')
+                self.parser.error(f'Invalid config pair: {pair}')
             
             section,key = splited
             print(config.get_var(key=key, section=section))
@@ -291,7 +295,7 @@ class PortainerDeployer:
             # Exit with success
             sys.exit(0)
         else:
-            self._parser.error('No config action given.')
+            self.parser.error('No config action given.')
 
 
     def __get_sub_command(self , args: argparse.Namespace) -> None:
@@ -319,7 +323,7 @@ class PortainerDeployer:
 
         # Validate endpoint set
         if args.endpoint is None:
-            self._parser.error('Endpoint is not set')
+            self.parser.error('Endpoint is not set')
 
         if args.stack:
             if args.update_keys:
@@ -351,18 +355,5 @@ class PortainerDeployer:
         sys.exit(0)
 
 
-
-class PortainerDeployerTest(PortainerDeployer):
-    def __init__(self):
-        super().__init__()
-
-    @property
-    def parser(self):
-        return self._parser
-
-    @property
-    def args(self, args: list = []):
-        return vars(self._parser.parse_args(args))
-
 if __name__ == '__main__':
-    PortainerDeployer()
+    PortainerDeployer().run()
