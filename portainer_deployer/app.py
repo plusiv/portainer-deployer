@@ -37,7 +37,7 @@ class PortainerAPIConsumer:
         r = requests.get(
             f"{self.__portainer_connection_str}/api/stacks", 
             headers=self.__connection_headers,
-            verify=False
+            verify=self.use_ssl
         )
         data = r.json()
 
