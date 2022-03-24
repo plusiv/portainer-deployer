@@ -1,8 +1,8 @@
 from datetime import datetime as dt
 from hashlib import sha256
-import re
 from yaml import Loader, load, dump
 from re import match
+from typing import Any
 
 def format_stack_list(stacks: list):
     """Format the list of stacks from Portainer and return a generator with it.
@@ -34,7 +34,17 @@ def generate_random_hash() -> str:
 
 
 
-def recursive_dict(dictionary: dict, keys: list, new_value=None) -> dict:
+def recursive_dict(dictionary: dict, keys: list, new_value: Any=None) -> dict:
+    """Recursively set a value in a dictionary.
+
+    Args:
+        dictionary (dict): Target dictionary.
+        keys (list): Keys to access the value.
+        new_value (Any, optional): Value to be set. Defaults to None.
+
+    Returns:
+        dict: _description_
+    """    
     if len(keys) == 1:
         dictionary[keys[0]] = new_value
     
