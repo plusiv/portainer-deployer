@@ -1,12 +1,13 @@
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
+
+
 from app import PortainerDeployer
 
 
 class PortainerDeployerTest(PortainerDeployer):
     def __init__(self):
         super().__init__()
-        
         self.create_api_consumer_mock() 
 
     def create_api_consumer_mock(self):
@@ -16,22 +17,22 @@ class PortainerDeployerTest(PortainerDeployer):
 class PortainerCMDTest(unittest.TestCase):
     # ================================ Test Defualt functions in sub-commands ================================
     def test_get_subcommand(self):
-        tester = PortainerDeployer()
+        tester = PortainerDeployerTest()
         args = tester.parser.parse_args(['get'])
+        self.assertEqual(args.func, tester._get_sub_command)
 
-        self.assertEqual(args.func.__name__, '__get_sub_command')
 
     def test_deploy_subcommand(self):
         tester = PortainerDeployer()
         args = tester.parser.parse_args(['deploy'])
 
-        self.assertEqual(args.func.__name__, '__deploy_sub_command')
+        self.assertEqual(args.func, tester._deploy_sub_command)
     
     def test_config_subcommand(self):
         tester = PortainerDeployer()
         args = tester.parser.parse_args(['config'])
 
-        self.assertEqual(args.func.__name__, '__config_sub_command')
+        self.assertEqual(args.func, tester._config_sub_command)
     
     # ================================ Test API Consumer ================================
     def test_get_all_stacks(self):

@@ -190,7 +190,7 @@ class PortainerDeployer:
             help="Gets all stacks in portainer",   
         )
 
-        parser_get.set_defaults(func=self.__get_sub_command)
+        parser_get.set_defaults(func=self._get_sub_command)
 
 
         # ========================== Sub-commands for deploy ==========================
@@ -236,7 +236,7 @@ class PortainerDeployer:
         )
 
 
-        parser_deploy.set_defaults(func=self.__deploy_sub_command)
+        parser_deploy.set_defaults(func=self._deploy_sub_command)
 
 
         # ========================== Sub-commands for config ==========================
@@ -257,12 +257,12 @@ class PortainerDeployer:
             type=str,
             help='Get a config value')
 
-        parser_config.set_defaults(func=self.__config_sub_command)
+        parser_config.set_defaults(func=self._config_sub_command)
  
         return parser
         
 
-    def __config_sub_command(self, args) -> None:
+    def _config_sub_command(self, args) -> None:
         """Config sub-command.
 
         Args:
@@ -299,7 +299,7 @@ class PortainerDeployer:
             self.parser.error('No config action given.')
 
 
-    def __get_sub_command(self , args: argparse.Namespace) -> None:
+    def _get_sub_command(self , args: argparse.Namespace) -> None:
         """Get sub-command default function. Excutes get functions according given arguments.
 
         Args:
@@ -312,7 +312,7 @@ class PortainerDeployer:
             self.api_consumer.get_stack(name=args.name, stack_id=args.id)
         
 
-    def __deploy_sub_command(self, args: argparse.Namespace) -> None:
+    def _deploy_sub_command(self, args: argparse.Namespace) -> None:
         """Deploy sub-command default function. Excutes deploy functions according given arguments.
 
         Args:
