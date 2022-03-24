@@ -141,6 +141,9 @@ class PortainerDeployer:
         
         parser_args.func(parser_args)
 
+        # Exits with success
+        sys.exit(0)
+
 
     def __parser(self) -> argparse.ArgumentParser:
         """Parse and handle given arguments.
@@ -291,9 +294,7 @@ class PortainerDeployer:
             
             section,key = splited
             print(config.get_var(key=key, section=section))
-            
-            # Exit with success
-            sys.exit(0)
+           
         else:
             self.parser.error('No config action given.')
 
@@ -310,9 +311,6 @@ class PortainerDeployer:
         else:
             self.api_consumer.get_stack(name=args.name, stack_id=args.id)
         
-        # Exit with success
-        sys.exit(0)
-
 
     def __deploy_sub_command(self, args: argparse.Namespace) -> None:
         """Deploy sub-command default function. Excutes deploy functions according given arguments.
@@ -350,9 +348,6 @@ class PortainerDeployer:
                         self.parser.error(f'Invalid key=value pair in --update-keys argument: {pair}')
 
             self.api_consumer.post_stack_from_file(path=args.path, name=args.name, endpoint_id=args.endpoint)
-        
-        # Exit with success
-        sys.exit(0)
 
 
 if __name__ == '__main__':
