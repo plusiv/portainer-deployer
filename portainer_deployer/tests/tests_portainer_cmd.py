@@ -14,42 +14,7 @@ class PortainerDeployerTest(PortainerDeployer):
 
 
 class PortainerCMDTest(unittest.TestCase):
-
-    # ================================ Test Helps ================================
-    def test_global_help(self):
-        tester = PortainerDeployer()
-        with self.assertRaises(SystemExit) as cm:
-            tester.parser.parse_args(['--help'])
-
-        self.assertEqual(cm.exception.code, 0)
-
-        
-    def test_get_help(self):
-        tester = PortainerDeployer()
-        with self.assertRaises(SystemExit) as cm:
-            tester.parser.parse_args(['get', '--help'])
-
-        self.assertEqual(cm.exception.code, 0)
-
-
-    def test_deploy_help(self):
-        tester = PortainerDeployer()
-        with self.assertRaises(SystemExit) as cm:
-            tester.parser.parse_args(['deploy', '--help'])
-
-        self.assertEqual(cm.exception.code, 0)
-
-
-    def test_config_help(self):
-        tester = PortainerDeployer()
-        with self.assertRaises(SystemExit) as cm:
-            tester.parser.parse_args(['config', '--help'])
-
-        self.assertEqual(cm.exception.code, 0)
-
-
     # ================================ Test Defualt functions in sub-commands ================================
-
     def test_get_subcommand(self):
         tester = PortainerDeployer()
         args = tester.parser.parse_args(['get'])
@@ -69,8 +34,17 @@ class PortainerCMDTest(unittest.TestCase):
         self.assertEqual(args.func.__name__, '__config_sub_command')
     
     # ================================ Test API Consumer ================================
+    def test_get_all_stacks(self):
+        tester = PortainerDeployerTest()
+        args = tester.parser.parse_args(['get', '--all'])
+        args.func(args)
+        tester.api_consumer.get_stack.assert_called_once()
+
     def test_get_stack(self):
-        pass
+        tester = PortainerDeployerTest()
+        args = tester.parser.parse_args(['get', '--all'])
+        args.func(args)
+        tester.api_consumer.get_stack.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()
