@@ -1,10 +1,11 @@
 import argparse
 import sys
 import os
+from urllib import response
 import requests
 from json import loads
 from urllib3.exceptions import InsecureRequestWarning
-from utils.utils import edit_yml_file, format_stack_list, generate_random_hash, validate_key_value, validate_key_value_lst 
+from utils.utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst 
 from config.config import ConfigManager
 
 class PortainerAPIConsumer:
@@ -27,41 +28,73 @@ class PortainerAPIConsumer:
         self.__connection_headers = {'X-API-Key': self._portainer_config.token}
 
 
-    def get_stack(self, name:str=None, stack_id:int=None) -> None:
+    def get_stack(self, name:str=None, stack_id:int=None) -> dict:
         """Get a stack from portainer
 
         Args:
             name (str, optional): Name of the stack in Portainer. Defaults to None.
             stack_id (int, optional): Id of the stack in Portainer. Defaults to None.
         """
-        r = requests.get(
-            f"{self.__portainer_connection_str}/api/stacks", 
-            headers=self.__connection_headers,
-            verify=self.use_ssl
-        )
-        data = r.json()
-
         spacing_str = '{0:<5} {1:<12} {2:<30} {3:30} {4:<30}'
-        print(spacing_str.format('Id', 'Endpoint Id', 'Name', 'Creation', 'Last Updated'))
 
-        data = format_stack_list(data)
-        
-        # Return all stacks if name and id aren't set
-        if not name and not stack_id:
-            for stack in data:
-                print(spacing_str.format(*stack))
-        
-        # Return a specific stack given by the name
-        elif name and not stack_id:
-            for stack in data:
-                if stack[2] == name:
+        try:
+            if stack_id:
+                    r = requests.get(
+                        f"{self.__portainer_connection_str}/api/stacks/{stack_id}", 
+                        headers=self.__connection_headers,
+                        verify=self.use_ssl
+                    )
+                    
+                    r.raise_for_status()
+                    data = format_stack_info(r.json())
+
+                    print(spacing_str.format('Id', 'Endpoint Id', 'Name', 'Creation', 'Last Updated'))
+                    print(spacing_str.format(*data))
+
+            elif name:
+                r = requests.get(
+                    f"{self.__portainer_connection_str}/api/stacks", 
+                    headers=self.__connection_headers,
+                    verify=self.use_ssl
+                )
+                
+                r.raise_for_status()
+                data = format_stack_info_generator(r.json())
+
+                print(spacing_str.format('Id', 'Endpoint Id', 'Name', 'Creation', 'Last Updated'))
+                for stack in data:
+                    if stack[2] == name:
+                        print(spacing_str.format(*stack))
+                        break 
+
+            else:
+                r = requests.get(
+                    f"{self.__portainer_connection_str}/api/stacks", 
+                    headers=self.__connection_headers,
+                    verify=self.use_ssl
+                )
+                
+                r.raise_for_status()
+                data = format_stack_info_generator(r.json())
+
+                print(spacing_str.format('Id', 'Endpoint Id', 'Name', 'Creation', 'Last Updated'))
+                for stack in data:
                     print(spacing_str.format(*stack))
-        
-        # Return a specific stack given by the stack id
-        else:
-            for stack in data:
-                if stack[0] == stack_id:
-                    print(spacing_str.format(*stack))
+
+        except requests.HTTPError as e:
+            return {
+                'status': False, 
+                'message': e.response.json()['message'], 
+                'details': e.response.json()['details'], 
+                'code': e.response.status_code
+                }
+        except requests.exceptions.RequestException as e:
+            return {
+                'status': False, 
+                'message': e.response.json()['message'], 
+                'details': e.response.json()['details'], 
+                'code': e.response.status_code
+            }
 
 
     def post_stack_from_str(self, stack: str, endpoint_id: int, name: str = generate_random_hash()):

@@ -4,14 +4,14 @@ from yaml import Loader, load, dump
 from re import match
 from typing import Any
 
-def format_stack_list(stacks: list):
+def format_stack_info_generator(stacks: list):
     """Format the list of stacks from Portainer and return a generator with it.
 
     Args:
         stacks (list): Raw list of stacks from Portainer.
-
+    
     Yields:
-        tuple: Formatted stack.
+        tuple: Tuple of some stack info values.
     """    
     for stack in stacks:
         stack_info = (
@@ -22,6 +22,27 @@ def format_stack_list(stacks: list):
             f"{dt.fromtimestamp(stack['UpdateDate']).strftime('%m-%d-%y %H:%m')} by {stack['UpdatedBy']}"
         )
         yield stack_info
+
+
+def format_stack_info(stack: dict):
+    """Format the stack info from Portainer.
+
+    Args:
+        stack (dict): Raw stack info from Portainer.
+    
+    Returns:
+        tuple: Tuple of some stack info values.
+    """
+    if len(stack) == 0:
+        return ()
+
+    return (
+        stack['Id'], 
+        stack['EndpointId'], 
+        stack['Name'], 
+        f"{dt.fromtimestamp(stack['CreationDate']).strftime('%m-%d-%y %H:%m')} by {stack['CreatedBy']}",
+        f"{dt.fromtimestamp(stack['UpdateDate']).strftime('%m-%d-%y %H:%m')} by {stack['UpdatedBy']}"
+    )
 
 def generate_random_hash() -> str:
     """Generate a pseudo-random hash.
