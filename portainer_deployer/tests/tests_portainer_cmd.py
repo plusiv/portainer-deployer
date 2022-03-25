@@ -4,7 +4,7 @@ from random import randint
 
 
 from app import PortainerDeployer
-
+from utils.utils import generate_response
 
 class PortainerDeployerTest(PortainerDeployer):
     def __init__(self):
@@ -16,6 +16,11 @@ class PortainerDeployerTest(PortainerDeployer):
 
 
 class PortainerCMDTest(unittest.TestCase):
+    @property
+    def tester(self):
+        return PortainerDeployerTest()    
+
+
     # ================================ Test Defualt functions in sub-commands ================================
     def test_get_subcommand(self):
         tester = PortainerDeployerTest()
@@ -41,15 +46,33 @@ class PortainerCMDTest(unittest.TestCase):
         args.func(args)
         tester.api_consumer.get_stack.assert_called_once()
 
-    def test_get_stack_by_id(self):
-        tester = PortainerDeployerTest()
-
+    def test_get_stack(self):
+        # Assert Get all Stacks
+        tester = self.tester
+        args = tester.parser.parse_args(['get', '--all'])
+        args.func(args)
+        tester.api_consumer.get_stack.assert_called_once()
+        
+        # Assert Calls to get_stack method
+        tester = self.tester
         stack_id = randint(1, 100)
         cmd_args = ['get', '--id', str(stack_id)]
         
         args = tester.parser.parse_args(cmd_args)
         args.func(args)
         tester.api_consumer.get_stack.assert_called_once_with(name=None, stack_id=stack_id)
+        
+        # Assert error handling
+        tester = self.tester
+        stack_id = 23 # Unexisting stack id
+
+        cmd_args = ['get', '--id', str(stack_id)]
+        generated_response = generate_response('Not found in database', status=False, code=404)
+        tester.api_consumer.get_stack.return_value = generated_response 
+        args = tester.parser.parse_args(cmd_args)
+        
+        self.assertEquals(args.func(args), generated_response)        
+
 
     def test_get_stack_by_name(self):
         tester = PortainerDeployerTest()
