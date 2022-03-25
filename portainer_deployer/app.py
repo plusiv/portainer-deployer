@@ -189,14 +189,6 @@ class PortainerDeployer:
         else:
             self._error_handler(response['message'], response['details'])
 
-    def _error_handler(self, error_message: str, error_detail: str): 
-        """Prints an error message and exits with error code.
-
-        Args:
-            error_message (str): Error message to be printed.
-            error_code (int, optional): Error code to be used. Defaults to None.
-        """        
-        self.parser.error(error_detail)
 
     def __parser(self) -> argparse.ArgumentParser:
         """Parse and handle given arguments.
@@ -314,6 +306,16 @@ class PortainerDeployer:
  
         return parser
         
+
+    def _error_handler(self, error_message: str, error_detail: str) -> None: 
+        """Prints an error message and exits with error code.
+
+        Args:
+            error_message (str): Error message to be printed.
+            error_code (int, optional): Error code to be used. Defaults to None.
+        """        
+        self.parser.error(error_detail)
+
 
     def _config_sub_command(self, args) -> dict:
         """Config sub-command.
