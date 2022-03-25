@@ -5,7 +5,7 @@ from urllib import response
 import requests
 from json import loads
 from urllib3.exceptions import InsecureRequestWarning
-from utils.utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst 
+from utils.utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst, generate_response 
 from config.config import ConfigManager
 
 class PortainerAPIConsumer:
@@ -69,6 +69,8 @@ class PortainerAPIConsumer:
                     if stack[2] == name:
                         print(spacing_str.format(*stack))
                         break 
+                else:
+                    raise Exception(f"Stack {name} not found in the database.")
 
             else:
                 r = requests.get(
@@ -84,27 +86,16 @@ class PortainerAPIConsumer:
                 for stack in data:
                     print(spacing_str.format(*stack))
 
-            return {
-                'status': True,
-                'message': 'Stack(s) pulled successfully',
-                'details': f'Stack(s) pulled successfully',
-                'code': r.status_code,
-            }
+            return generate_response('Stack(s) pulled successfully', status=True, code=r.status_code)
 
         except requests.HTTPError as e:
-            return {
-                'status': False, 
-                'message': e.response.json()['message'], 
-                'details': e.response.json()['details'], 
-                'code': e.response.status_code
-                }
+            return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code)
+        
         except requests.exceptions.RequestException as e:
-            return {
-                'status': False, 
-                'message': e.response.json()['message'], 
-                'details': e.response.json()['details'], 
-                'code': e.response.status_code
-            }
+            return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code) 
+        
+        except Exception as e:
+            return generate_response(str(e), code=500)
 
 
     def post_stack_from_str(self, stack: str, endpoint_id: int, name: str = generate_random_hash()):
@@ -146,42 +137,20 @@ class PortainerAPIConsumer:
                     verify=self.use_ssl
                 )
 
-                    
-                return {
-                    'status': True,
-                    'message': f'Stack {name} posted successfully.',
-                    'details': f'Stack {name} from {path} posted successfully under the endpoint {endpoint_id}.',
-                    'code': response.status_code
-                }
+                return generate_response(f'Stack {name} from {path} posted successfully under the endpoint {endpoint_id}.', status=True, code=response.status_code)
                 
         except requests.HTTPError as e:
-            return {
-                'status': False, 
-                'message': e.response.json()['message'], 
-                'details': e.response.json()['details'], 
-                'code': e.response.status_code
-                }
+            return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code)
+        
         except requests.exceptions.RequestException as e:
-            return {
-                'status': False, 
-                'message': e.response.json()['message'], 
-                'details': e.response.json()['details'], 
-                'code': e.response.status_code
-            }
+            return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code)
+        
         except FileNotFoundError as e:
-            return {
-                'status': False,
-                'message': f"File {path} not found.",
-                'details': f"File {path} not found.",
-                'code': None
-            }
+            return generate_response(f'File {path} not found.', code=None)
+        
         except Exception as e:
-            return {
-                'status': False,
-                'message': e,
-                'details': e,
-                'code': None
-            } 
+            return generate_response(str(e), None)
+
 
     def update_stack(self, stack_id: str, stack: str):
         #TODO: Implement
@@ -212,11 +181,22 @@ class PortainerDeployer:
         self.parser = self.__parser()
         parser_args = self.parser.parse_args(args=None if len(sys.argv) > 2 else [sys.argv[1], '-h'] if len(sys.argv) == 2 else ['-h'])
         
-        parser_args.func(parser_args)
+        response = parser_args.func(parser_args)
 
-        # Exits with success
-        sys.exit(0)
+        if response['status']:
+            # Exits with success
+            sys.exit(0)
+        else:
+            self._error_handler(response['message'], response['details'])
 
+    def _error_handler(self, error_message: str, error_detail: str): 
+        """Prints an error message and exits with error code.
+
+        Args:
+            error_message (str): Error message to be printed.
+            error_code (int, optional): Error code to be used. Defaults to None.
+        """        
+        self.parser.error(error_detail)
 
     def __parser(self) -> argparse.ArgumentParser:
         """Parse and handle given arguments.
@@ -372,7 +352,7 @@ class PortainerDeployer:
             self.parser.error('No config action given.')
 
 
-    def _get_sub_command(self , args: argparse.Namespace) -> None:
+    def _get_sub_command(self , args: argparse.Namespace) -> dict:
         """Get sub-command default function. Excutes get functions according given arguments.
 
         Args:
@@ -380,12 +360,14 @@ class PortainerDeployer:
         """        
 
         if args.all:
-            self.api_consumer.get_stack()
+            response = self.api_consumer.get_stack()
         else:
-            self.api_consumer.get_stack(name=args.name, stack_id=args.id)
+            response = self.api_consumer.get_stack(name=args.name, stack_id=args.id)
+
+        return response
         
 
-    def _deploy_sub_command(self, args: argparse.Namespace) -> None:
+    def _deploy_sub_command(self, args: argparse.Namespace) -> dict:
         """Deploy sub-command default function. Excutes deploy functions according given arguments.
 
         Args:
@@ -394,16 +376,16 @@ class PortainerDeployer:
 
         # Validate endpoint set
         if args.endpoint is None:
-            self.parser.error('Endpoint is not set')
+            return generate_response('Endpoint not set', 'Endpoint not set. Please set the endpoint id with --endpoint')
 
         if args.stack:
             if args.update_keys:
-                self.parser.error('You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
-            self.api_consumer.post_stack_from_str(stack=args.stack, endpoint_id=args.endpoint)
+                return generate_response('Invalid use of --update-keys', 'You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
+            response = self.api_consumer.post_stack_from_str(stack=args.stack, endpoint_id=args.endpoint)
         
         elif args.path:
             if not os.path.isfile(args.path):
-                self.parser.error('The specified file does not exist.')
+                return generate_response(f'Invalid path to Docker Compose file: {args.path}')
 
             if args.update_keys:
                 for pair in args.update_keys:
@@ -411,16 +393,20 @@ class PortainerDeployer:
                         keys, new_value = pair.split('=')
                         edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
                         if edited:
-                            self.parser.error(edited)
+                            return generate_response(edited)
+                    
                     elif validate_key_value_lst(pair=pair):
                         keys, new_value = pair.split('=')
                         edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value[1:-1].split(','))
                         if edited:
-                            self.parser.error(edited)
-                    else:
-                        self.parser.error(f'Invalid key=value pair in --update-keys argument: {pair}')
+                            return generate_response(edited)
 
-            self.api_consumer.post_stack_from_file(path=args.path, name=args.name, endpoint_id=args.endpoint)
+                    else:
+                        return generate_response(f'Invalid key=value pair in --update-keys argument: {pair}')
+
+            response = self.api_consumer.post_stack_from_file(path=args.path, name=args.name, endpoint_id=args.endpoint)
+
+        return response
 
 
 if __name__ == '__main__':

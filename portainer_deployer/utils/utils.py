@@ -44,6 +44,7 @@ def format_stack_info(stack: dict):
         f"{dt.fromtimestamp(stack['UpdateDate']).strftime('%m-%d-%y %H:%m')} by {stack['UpdatedBy']}"
     )
 
+
 def generate_random_hash() -> str:
     """Generate a pseudo-random hash.
 
@@ -52,7 +53,6 @@ def generate_random_hash() -> str:
     """    
     random_hash = sha256(str(dt.now()).encode('utf-8')).hexdigest()
     return random_hash
-
 
 
 def recursive_dict(dictionary: dict, keys: list, new_value: Any=None) -> dict:
@@ -73,7 +73,6 @@ def recursive_dict(dictionary: dict, keys: list, new_value: Any=None) -> dict:
         dictionary[keys[0]] = recursive_dict(dictionary[keys[0]], keys[1:], new_value)
 
     return dictionary
-
 
 
 def edit_yml_file(path: str, key_group:str, new_value: str) -> str:
@@ -131,3 +130,11 @@ def validate_key_value_lst(pair: str) -> bool:
         return True
 
     return False
+
+def generate_response(message: str, details: str=None, status: bool=False, code: int = None) -> dict:
+    return {
+        'message': message,
+        'details': details if details else message,
+        'status': status,
+        'code': code
+    }
