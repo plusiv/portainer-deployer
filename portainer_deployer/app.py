@@ -34,6 +34,9 @@ class PortainerAPIConsumer:
         Args:
             name (str, optional): Name of the stack in Portainer. Defaults to None.
             stack_id (int, optional): Id of the stack in Portainer. Defaults to None.
+
+        Returns:
+            dict: Dictionary with the status and detail of the operation.
         """
         spacing_str = '{0:<5} {1:<12} {2:<30} {3:30} {4:<30}'
 
@@ -81,6 +84,13 @@ class PortainerAPIConsumer:
                 for stack in data:
                     print(spacing_str.format(*stack))
 
+            return {
+                'status': True,
+                'message': 'Stack(s) pulled successfully',
+                'details': f'Stack(s) pulled successfully',
+                'code': r.status_code,
+            }
+
         except requests.HTTPError as e:
             return {
                 'status': False, 
@@ -102,7 +112,7 @@ class PortainerAPIConsumer:
        pass
 
 
-    def post_stack_from_file(self, path: str, endpoint_id: int, name: str) -> bool:
+    def post_stack_from_file(self, path: str, endpoint_id: int, name: str) -> dict:
         """Post a stack from a file.
 
         Args:
@@ -111,37 +121,67 @@ class PortainerAPIConsumer:
             name (str): Name of the stack in Portainer.
 
         Returns:
-            bool: True if the stack was posted successfuly, False otherwise.
+            dict: Dictionary with the status and detail of the operation.
         """        
-        name = name if name else generate_random_hash()
-        # Open file
-        with open(path, 'r') as f:
-            form_data = {
-                'Name': name 
-            }
+        try:
+            name = name if name else generate_random_hash()
             
-            params = {
-                "type": 2,
-                "endpointId": endpoint_id,
-                "method": "file"
-            }
-            
-            response = requests.post(self.__portainer_connection_str + '/api/stacks',
-                 data=form_data, 
-                 params=params,
-                 files={'file': f},
-                 headers=self.__connection_headers, 
-                 verify=self.use_ssl
-            )
+            # Open file
+            with open(path, 'r') as f:
+                form_data = {
+                    'Name': name 
+                }
+                
+                params = {
+                    "type": 2,
+                    "endpointId": endpoint_id,
+                    "method": "file"
+                }
+                
+                response = requests.post(self.__portainer_connection_str + '/api/stacks',
+                    data=form_data, 
+                    params=params,
+                    files={'file': f},
+                    headers=self.__connection_headers, 
+                    verify=self.use_ssl
+                )
 
-            if response.status_code == 200:
-                print(f"Stack {name} created successfully.")
-                return True
-            
-            else:
-                print(f"Error: {response.json()['message']}. {response.json()['details']} \n\nStack {name} could not be created.")
-                return False
-    
+                    
+                return {
+                    'status': True,
+                    'message': f'Stack {name} posted successfully.',
+                    'details': f'Stack {name} from {path} posted successfully under the endpoint {endpoint_id}.',
+                    'code': response.status_code
+                }
+                
+        except requests.HTTPError as e:
+            return {
+                'status': False, 
+                'message': e.response.json()['message'], 
+                'details': e.response.json()['details'], 
+                'code': e.response.status_code
+                }
+        except requests.exceptions.RequestException as e:
+            return {
+                'status': False, 
+                'message': e.response.json()['message'], 
+                'details': e.response.json()['details'], 
+                'code': e.response.status_code
+            }
+        except FileNotFoundError as e:
+            return {
+                'status': False,
+                'message': f"File {path} not found.",
+                'details': f"File {path} not found.",
+                'code': None
+            }
+        except Exception as e:
+            return {
+                'status': False,
+                'message': e,
+                'details': e,
+                'code': None
+            } 
 
     def update_stack(self, stack_id: str, stack: str):
         #TODO: Implement
