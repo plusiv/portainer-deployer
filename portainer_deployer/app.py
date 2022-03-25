@@ -315,7 +315,7 @@ class PortainerDeployer:
         return parser
         
 
-    def _config_sub_command(self, args) -> None:
+    def _config_sub_command(self, args) -> dict:
         """Config sub-command.
 
         Args:
@@ -327,29 +327,30 @@ class PortainerDeployer:
             for pair in args.set:
                 splited = pair.split('=')
                 if len(splited) != 2:
-                    self.parser.error(f'Invalid config pair: {pair}')
+                    return generate_response(f'Invalid config pair: {pair}')
                 
                 value = splited[1]
                 section_key = splited[0].split('.')
                 if len(section_key) != 2:
-                    self.parser.error(f'Invalid config pair: {pair}')
+                    return generate_response(f'Invalid config pair: {pair}')
                 section, key = section_key  
                 config.set_var(key=key, new_value=value, section=section)
 
-            # Exit with success
-            sys.exit(0)
+            print(f'Config updated for: {args.set}')
 
         elif args.get:
             pair = args.get
             splited = pair.split('.')
             if len(splited) != 2:
-                self.parser.error(f'Invalid config pair: {pair}')
+                    return generate_response(f'Invalid config pair: {pair}')
             
             section,key = splited
             print(config.get_var(key=key, section=section))
            
         else:
-            self.parser.error('No config action given.')
+            return generate_response('No config action specified')
+
+        return generate_response(f'Config operation {"get" if args.get else "set"} completed successfully', status=True)
 
 
     def _get_sub_command(self , args: argparse.Namespace) -> dict:

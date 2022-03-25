@@ -60,7 +60,7 @@ class PortainerCMDTest(unittest.TestCase):
         args = tester.parser.parse_args(cmd_args)
         args.func(args)
         tester.api_consumer.get_stack.assert_called_once_with(name=stack_name, stack_id=None)
-
+        
 
 if __name__ == '__main__':
     unittest.main()
