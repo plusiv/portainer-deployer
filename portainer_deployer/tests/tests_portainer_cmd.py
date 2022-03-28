@@ -41,27 +41,25 @@ class PortainerCMDTest(unittest.TestCase):
     
     # ================================ Test API Consumer ================================
     def test_get_all_stacks(self):
-        tester = PortainerDeployerTest()
-        args = tester.parser.parse_args(['get', '--all'])
-        args.func(args)
-        tester.api_consumer.get_stack.assert_called_once()
-
-    def test_get_stack(self):
         # Assert Get all Stacks
         tester = self.tester
         args = tester.parser.parse_args(['get', '--all'])
         args.func(args)
         tester.api_consumer.get_stack.assert_called_once()
-        
-        # Assert Calls to get_stack method
+
+    def test_get_stack_by_id(self):
         tester = self.tester
         stack_id = randint(1, 100)
         cmd_args = ['get', '--id', str(stack_id)]
+        generated_response = generate_response('ok', status=True, code=None)
+        tester.api_consumer.get_stack.return_value = generated_response 
         
         args = tester.parser.parse_args(cmd_args)
         args.func(args)
-        tester.api_consumer.get_stack.assert_called_once_with(name=None, stack_id=stack_id)
         
+        tester.api_consumer.get_stack.assert_called_once_with(name=None, stack_id=stack_id)
+        self.assertEquals(args.func(args), generated_response)
+
         # Assert error handling
         tester = self.tester
         stack_id = 23 # Unexisting stack id
@@ -75,14 +73,29 @@ class PortainerCMDTest(unittest.TestCase):
 
 
     def test_get_stack_by_name(self):
-        tester = PortainerDeployerTest()
-
-        stack_name = 'random_stack_name'
+        tester = self.tester
+        stack_name = 'fake_stack_name'
         cmd_args = ['get', '--name', stack_name]
+        generated_response = generate_response('ok', status=True, code=None)
+        tester.api_consumer.get_stack.return_value = generated_response 
         
         args = tester.parser.parse_args(cmd_args)
         args.func(args)
+        
         tester.api_consumer.get_stack.assert_called_once_with(name=stack_name, stack_id=None)
+        self.assertEquals(args.func(args), generated_response)
+
+        # Assert error handling
+        tester = self.tester
+        stack_name = 'another_fake_name' # Unexisting stack id
+
+        cmd_args = ['get', '--name', stack_name] 
+        generated_response = generate_response('Not found in database', status=False, code=404)
+        tester.api_consumer.get_stack.return_value = generated_response 
+        args = tester.parser.parse_args(cmd_args)
+        
+        self.assertEquals(args.func(args), generated_response)        
+
         
 
 if __name__ == '__main__':
