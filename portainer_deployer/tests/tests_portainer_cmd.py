@@ -9,9 +9,6 @@ from utils.utils import generate_response
 class PortainerDeployerTest(PortainerDeployer):
     def __init__(self):
         super().__init__()
-        self.create_api_consumer_mock() 
-
-    def create_api_consumer_mock(self):
         self.api_consumer = Mock()
 
 
