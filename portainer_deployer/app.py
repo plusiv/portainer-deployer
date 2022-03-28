@@ -98,12 +98,48 @@ class PortainerAPIConsumer:
             return generate_response(str(e), code=500)
 
 
-    def post_stack_from_str(self, stack: str, endpoint_id: int, name: str = generate_random_hash()):
-       #TODO: Implement
-       pass
+    def post_stack_from_str(self, stack: str, endpoint_id: int, name: str = None) -> dict:
+        """Post a stack from str.
+
+        Args:
+            stack (str): String of the stack.
+            endpoint_id (int): Id of the endpoint in Portainer.
+            name (str): Name of the stack in Portainer.
+
+        Returns:
+            dict: Dictionary with the status and detail of the operation.
+        """
+        try:
+            name = name if name else generate_random_hash()
+
+            params = {
+                "type": 2,
+                "endpointId": endpoint_id,
+                "method": "string"
+            }
+
+            r = requests.post(
+                f"{self.__portainer_connection_str}/api/stacks", 
+                headers=self.__connection_headers,
+                params=params,
+                json={
+                    "name": name,
+                    "stackFileContent": stack},
+                verify=self.use_ssl
+            )
+            
+            r.raise_for_status()
+            print(f"Stack {name} created successfully.")
+            return generate_response('Stack(s) pushed successfully', status=True, code=r.status_code)
+
+        except requests.exceptions.RequestException as e:
+            return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code) 
+        
+        except Exception as e:
+            return generate_response(str(e), code=500)        
 
 
-    def post_stack_from_file(self, path: str, endpoint_id: int, name: str) -> dict:
+    def post_stack_from_file(self, path: str, endpoint_id: int, name: str = None) -> dict:
         """Post a stack from a file.
 
         Args:
@@ -119,10 +155,6 @@ class PortainerAPIConsumer:
             
             # Open file
             with open(path, 'r') as f:
-                form_data = {
-                    'Name': name 
-                }
-                
                 params = {
                     "type": 2,
                     "endpointId": endpoint_id,
@@ -130,18 +162,19 @@ class PortainerAPIConsumer:
                 }
                 
                 response = requests.post(self.__portainer_connection_str + '/api/stacks',
-                    data=form_data, 
+                    data={
+                        "Name": name
+                    }, 
                     params=params,
                     files={'file': f},
                     headers=self.__connection_headers, 
                     verify=self.use_ssl
                 )
+                response.raise_for_status()
 
+                print(f"Stack {name} created successfully.")
                 return generate_response(f'Stack {name} from {path} posted successfully under the endpoint {endpoint_id}.', status=True, code=response.status_code)
                 
-        except requests.HTTPError as e:
-            return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code)
-        
         except requests.exceptions.RequestException as e:
             return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code)
         
@@ -155,7 +188,6 @@ class PortainerAPIConsumer:
     def update_stack(self, stack_id: str, stack: str):
         #TODO: Implement
         pass
-
 
 class PortainerDeployer:
     """Manage Portainer's Stacks usgin its API throught Command Line.
@@ -243,10 +275,10 @@ class PortainerDeployer:
 
         mutually_exclusive_stack_path = parser_deploy.add_mutually_exclusive_group()
 
-        mutually_exclusive_stack_path.add_argument('--stack',
-            type=str, 
-            help="Docker Compose string for the satack",
+        mutually_exclusive_stack_path.add_argument('stack',
+            action='store',
             nargs='?',
+            help="Docker Compose string for the satack",
             default=(None if sys.stdin.isatty() else sys.stdin))
 
         
@@ -262,6 +294,7 @@ class PortainerDeployer:
             '-n',
             action='store',
             help="Name of the stack to look for",
+            type=str
         )
         
         parser_deploy.add_argument('--update-keys', 
@@ -376,7 +409,7 @@ class PortainerDeployer:
         Args:
             args (argparse.Namespace): Parsed arguments. 
         """
-
+        
         # Validate endpoint set
         if args.endpoint is None:
             return generate_response('Endpoint not set', 'Endpoint not set. Please set the endpoint id with --endpoint')
@@ -384,7 +417,7 @@ class PortainerDeployer:
         if args.stack:
             if args.update_keys:
                 return generate_response('Invalid use of --update-keys', 'You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
-            response = self.api_consumer.post_stack_from_str(stack=args.stack, endpoint_id=args.endpoint)
+            response = self.api_consumer.post_stack_from_str(stack=''.join(args.stack.readlines()), endpoint_id=args.endpoint)
         
         elif args.path:
             if not os.path.isfile(args.path):
@@ -408,6 +441,9 @@ class PortainerDeployer:
                         return generate_response(f'Invalid key=value pair in --update-keys argument: {pair}')
 
             response = self.api_consumer.post_stack_from_file(path=args.path, name=args.name, endpoint_id=args.endpoint)
+
+        else:
+            response = generate_response('No stack argument specified', 'No stack argument specified. Please use "--stack" or "--path" argument.')
 
         return response
 
