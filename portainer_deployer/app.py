@@ -280,7 +280,7 @@ class PortainerDeployer:
             action='store',
             nargs='?',
             help="Docker Compose string for the stack",
-            default=(None if sys.stdin.isatty() else sys.stdin))
+            default=(None if sys.stdin.isatty() else ''.join(sys.stdin.readlines())))
 
         
         parser_deploy.add_argument('--path',
@@ -419,7 +419,7 @@ class PortainerDeployer:
             if args.update_keys:
                 return generate_response('Invalid use of --update-keys', 'You can not use "--update-keys" argument with "stack" positional argument. It is only available for "--path" argument.')
 
-            response = self.api_consumer.post_stack_from_str(stack=''.join(args.stack.readlines()), name=args.name, endpoint_id=args.endpoint)
+            response = self.api_consumer.post_stack_from_str(stack=args.stack, name=args.name, endpoint_id=args.endpoint)
         
         elif args.path:
             if args.update_keys:
