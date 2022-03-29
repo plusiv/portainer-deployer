@@ -1,10 +1,6 @@
 import argparse
 import sys
-import os
-from urllib import response
-from click import FileError
 import requests
-from json import loads
 from urllib3.exceptions import InsecureRequestWarning
 from utils.utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst, generate_response, validate_yaml 
 from config.config import ConfigManager
@@ -280,8 +276,6 @@ class PortainerDeployer:
         # ========================== Sub-commands for deploy ==========================
         parser_deploy = subparsers.add_parser('deploy', help='Help for action Deploy')
 
-        parser_deploy.add_mutually_exclusive_group()
-
         parser_deploy.add_argument('stack',
             action='store',
             nargs='?',
@@ -315,7 +309,7 @@ class PortainerDeployer:
 
         parser_deploy.add_argument('--endpoint', 
             '-e',
-            required=True,
+            required=True if len(sys.argv) > 2 else False,
             action='store',
             type=int,
             help='Endponint Id in Portainer'
