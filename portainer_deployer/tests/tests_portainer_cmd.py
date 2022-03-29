@@ -71,10 +71,10 @@ class PortainerCMDTest(unittest.TestCase):
 
     def test_get_stack_by_name(self):
         tester = self.tester
-        stack_name = 'fake_stack_name'
-        cmd_args = ['get', '--name', stack_name]
         generated_response = generate_response('ok', status=True, code=None)
         tester.api_consumer.get_stack.return_value = generated_response 
+        stack_name = 'fake_stack_name'
+        cmd_args = ['get', '--name', stack_name]
         
         args = tester.parser.parse_args(cmd_args)
         args.func(args)
@@ -84,15 +84,54 @@ class PortainerCMDTest(unittest.TestCase):
 
         # Assert error handling
         tester = self.tester
+        generated_response = generate_response('Not found in database', status=False, code=404)
+        tester.api_consumer.get_stack.return_value = generated_response 
         stack_name = 'another_fake_name' # Unexisting stack id
 
         cmd_args = ['get', '--name', stack_name] 
-        generated_response = generate_response('Not found in database', status=False, code=404)
-        tester.api_consumer.get_stack.return_value = generated_response 
         args = tester.parser.parse_args(cmd_args)
         
         self.assertEquals(args.func(args), generated_response)        
 
+        
+    def test_deploy_stack_by_stdin(self):
+        tester = self.tester
+        generated_response = generate_response('ok', status=True, code=None)
+        tester.api_consumer.post_stack_from_file.return_value = generated_response
+        path, endpoint, name = ('/test/path/to/file', 1, 'test_stack')
+        example_stack = "version: 3\n services:\n web:\n image:nginx"
+        cmd_args = ['deploy', '--endpoint', str(endpoint), '--name', name, example_stack]
+        args = tester.parser.parse_args(cmd_args)
+        args.func(args)
+        tester.api_consumer.post_stack_from_str.assert_called_once_with(stack=example_stack, name=name, endpoint_id=endpoint)
+
+        # Assert error handling
+        tester = self.tester
+        generated_response = generate_response('error', status=False, code=None) 
+        tester.api_consumer.post_stack_from_str.return_value = generated_response
+        cmd_args = ['deploy', '--endpoint', str(endpoint), '--name', name, 'wrong_stack']
+        args = tester.parser.parse_args(cmd_args)
+        self.assertEquals(args.func(args), generated_response)
+
+
+    def test_deploy_stack_by_path(self):
+        tester = self.tester
+        generated_response = generate_response('ok', status=True, code=None)
+        tester.api_consumer.post_stack_from_file.return_value = generated_response
+        path, endpoint, name = ('/test/path/to/file', 1, 'test_stack')
+        
+        cmd_args = ['deploy', '--path', path, '--endpoint', str(endpoint), '--name', name]
+        args = tester.parser.parse_args(cmd_args)
+        args.func(args)
+        tester.api_consumer.post_stack_from_file.assert_called_once_with(path=path, name=name, endpoint_id=endpoint)
+
+        # Assert error handling
+        tester = self.tester
+        generated_response = generate_response('error', status=False, code=500)
+        tester.api_consumer.post_stack_from_file.return_value = generated_response
+        args = tester.parser.parse_args(cmd_args)
+        response = args.func(args)
+        self.assertEqual(response, generated_response)
         
 
 if __name__ == '__main__':
