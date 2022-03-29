@@ -315,6 +315,7 @@ class PortainerDeployer:
 
         parser_deploy.add_argument('--endpoint', 
             '-e',
+            required=True,
             action='store',
             type=int,
             help='Endponint Id in Portainer'
@@ -417,10 +418,6 @@ class PortainerDeployer:
             args (argparse.Namespace): Parsed arguments. 
         """
         
-        # Validate endpoint set
-        if args.endpoint is None:
-            return generate_response('Endpoint not set', 'Endpoint not set. Please set the endpoint id with --endpoint')
-
         if args.stack and args.path:
             print('Warning!!! Stack stdin and Path are both set. By default the stdin is used, so that, provided path will be ignored.\n')
 
