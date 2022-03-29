@@ -118,7 +118,7 @@ def validate_key_value(pair: str) -> bool:
     return False
 
 def validate_key_value_lst(pair: str) -> bool:
-    """Validate a key=value pair, where value is a list of values. i.e. a.b.c=[a,b,d] d=[1,2,a,c]
+    """Validate a key=value pair, where value is a list of values. i.e. a.b.c='[a,b,d]' d='[1,2,a,c]'
 
     Args:
         pair (str): A key=value pair.

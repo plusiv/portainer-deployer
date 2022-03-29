@@ -8,10 +8,9 @@
 <div align="center">
 
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
-[![GitHub Issues](https://img.shields.io/github/issues/kylelobo/The-Documentation-Compendium.svg)](https://github.com/Jorgmassih/portainer-deployer/issues)
+[![GitHub Issues](https://img.shields.io/github/issues/Jorgmassih/portainer-deployer)](https://github.com/Jorgmassih/portainer-deployer/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/kylelobo/The-Documentation-Compendium.svg)](https://github.com/Jorgmassih/portainer-deployer/pulls)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
-
 </div>
 
 ---
@@ -24,27 +23,28 @@
 
 - [About](#about)
 - [Getting Started](#getting_started)
-- [Deployment](#deployment)
+- [Configuring](#configuring)
 - [Usage](#usage)
 - [Built Using](#built_using)
-- [TODO](../TODO.md)
-- [Contributing](../CONTRIBUTING.md)
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgement)
 
-## Disclaimer :warning:
-This is not an official [Portainer]() software, it is just and Open Source tool to make an abstraction of the API.
+## :warning:Important Notice:warning:
+This is not an official [Portainer](https://www.portainer.io/) software, it is just and Open Source tool to make an abstraction of its API.
 
 ## 🧐 About <a name = "about"></a>
 
-This is a command line tool built in Python to use the [Portainer API]() to deploy Stacks and get Stacks Info throug Portainer API. The main use case for this application is to manage Stacks using the terminal in the CI/CD process, making it faster and easy.
+__Portainer Deployer__ is a command-line tool built in Python to abstract some [Portainer](https://www.portainer.io/)'s features by using its [API](https://docs.portainer.io/v/ce-2.11/). The principal use case for this application is to manage Stacks using the terminal in the CI/CD process, making it faster and easy.
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 
-Since __Portainer Deployer__ is a command line tool, you can inoke the application by running `portainer-deployer` after installation.
+Since __Portainer Deployer__ is a command line tool, you can invoke the application by running `portainer-deployer` after installation. We know could be tedious using the entire command to call the application, so, feel free to use an alias. e.g.
 
-You will need to set some params such as the configuration of connection to [Portainer API]() before start using the application. This can be easly managed by running `portainer-deployer config <config arguments goes here>`. We'll go more in deep later in this doc.
+```shell
+$ alias pd="portainer-deployer"
+```
 
+Before starting using Portainer Deployer, you will need to set some configurations to set up the connection with Portainer API. This can be easily managed by running `portainer-deployer config <config arguments goes here>`. You can go more in deep the [_config section_](#configuring). 
 ### Examples
 
 Get all the Stacks from portainer
@@ -57,74 +57,127 @@ $ portainer-deployer get --id <random-id>
 ```
 Deploy Stack from file
 ```shell
-$ portainer-deployer deploy --path <path to docker-compose file> --endpoint <endpoint to deploy> --update-keys <a.b.c=value e.f.g=value2>
+$ portainer-deployer deploy --path /path/to/my/docker-compose.yml --endpoint 45 --update-keys a.b.c=value e.f.g='[value2,value3...value4]' --name myStack
 ```
 
+Deploy Stack passing string to stdin
+```shell
+$ cat /path/to/my/docker-compose.yml | portainer-deployer deploy --endpoint 2 --name myStack
+```
+
+You can consult more information about allowed arguments and subcommands by entering `portainer-deployer --help` or `portainer-deployer -h`.
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running.
-
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo.
+TODO
 
 ## 🔧 Configuring <a name = "configuring"></a>
 
-First thing you need to set after installation is your Portainer Connection. There's two ways to manage configurations, the first one is by using the sub-command `config` to set all necessary variables. The another one is by editing directly the _config file_ located at `/path/to/config/file`. The first one mentioned is strongly recommended to avoid misconfigurations.
+There's two ways to go ahead with the configuration, the first one is by using the `config` sub-command to set all necessary variables. The another one is by editing directly the _config file_. The first one mentioned is strongly recommended to avoid misconfigurations.
 
-By sending `portainer-deployer config --help` in your shell you will receive:
+### Using `config` sub-command 
+By Entering `portainer-deployer config --help` in your shell you will receive:
 ```shell
 $ portainer-deployer config -h                                                                                                                           
-usage: portainerDeployer config [-h] [--set SET [SET ...] | --get GET]
+usage: portainer-deployer config [-h] [--set SET [SET ...] | --get GET]
 
 optional arguments:
   -h, --help            show this help message and exit
   --set SET [SET ...], -s SET [SET ...]
-                        Set a config value
-  --get GET, -g GET     Get a config value
+                        Set a config value specifying the section, key and value. e.g. --set section.url='http://localhost:9000'
+  --get GET, -g GET     Get a config value. e.g. --get section.port
+```
+> __Notice__ that you have to use the nomenclature of `section.key='new value'`.
+
+The following table list the available sections:
+| Section   | Description                                               |
+|-----------|-----------------------------------------------------------|
+| PORTAINER | All concerning configuration to Portainer API connection. |
+
+
+Also, here is a list of all keys of the variables that can be set and get:
+| Variable Key | Choices/Defaults | Description                                     |
+|----------|------------------|-------------------------------------------------|
+| url      |                  | Portainer URL to connect. e.g. https://10.0.0.3 |
+| port     |                  | Port to reach out Portainer host.               |
+| username |                  | Username to connect to the API.                 |
+| token    |                  | Token given by Portainer to connect to the API. |
+| ssl      | __yes__, no     | Use SSL for secure connections.                 |
+
+### Examples
+Set Portainer `url`
+```shell
+$ portainer-deployer config --set portainer.url='https://localhost'
 ```
 
-### Break down into end to end tests
-
-Explain what these tests test and why
-
+Get Portainer `port`
+```shell
+$ portainer-deployer config --get portainer.port
 ```
-Give an example
-```
+> __In case of__ you try to set a variable not listed beffore, the operation won't take effect.
 
-### And coding style tests
+### Editing directly the `config file`
+Usually the app configuration is located at `/etc/portainer-deployer/app.conf` and is in [INI](https://en.wikipedia.org/wiki/INI_file) format, so you would have the right permissions to edit the config file, which looks like: 
 
-Explain what these tests test and why
-
-```
-Give an example
+```ini
+# app.conf
+[PORTAINER]
+url = https://portainer.host.lab
+port = 9443
+username = portainer-deployer
+token = fal324ASDdjhdfasdjfaADSFADfasdgasd-
+ssl = yes
 ```
 
 ## 🎈 Usage <a name="usage"></a>
+Portainer Deployer is composed by 3 main sub-commands:
+- `get`
+- `deploy`
+- `config` _(explained in the past section)_
 
-Add notes about how to use the system.
+In this reading we are going to focus in `get` and `deploy` sub-commands.
 
-## 🚀 Deployment <a name = "deployment"></a>
+### The `get` sub-command
+By entering `portainer-deployer get` you will be able to retrive stacks information from Portainer. The command `portainer-deployer get -h` will result in:
 
-Add additional notes about how to deploy this on a live system.
+```shell
+usage: portainer-deployer get [-h] [--id ID | --name NAME | --all]
+
+Get a stack info from portainer.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --id ID               Id of the stack to look for
+  --name NAME, -n NAME  Name of the stack to look for
+  --all, -a             Gets all stacks
+```
+
+### The `deploy` sub-command
+This one allows to post stacks and run them in Portainer, it can be done by passing the string as `stdin` or by passing the `path` to the `yml` file.
+
+```shell
+usage: portainer-deployer deploy [-h] [--path PATH] [--name NAME] [--update-keys UPDATE_KEYS [UPDATE_KEYS ...]] [--endpoint ENDPOINT] [stack]
+
+positional arguments:
+  stack                 Docker Compose string for the stack
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --path PATH, -p PATH  The path to Docker Compose file for the stack. An alternative to pass the stack as string
+  --name NAME, -n NAME  Name of the stack to look for
+  --update-keys UPDATE_KEYS [UPDATE_KEYS ...], -u UPDATE_KEYS [UPDATE_KEYS ...]
+                        Modify the stack file/string by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1
+                        d='[value2, value3]'
+  --endpoint ENDPOINT, -e ENDPOINT
+                        Endponint Id to deploy the stack
+
+```
+
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 
-- [MongoDB](https://www.mongodb.com/) - Database
-- [Express](https://expressjs.com/) - Server Framework
-- [VueJs](https://vuejs.org/) - Web Framework
-- [NodeJs](https://nodejs.org/en/) - Server Environment
+- [Python 🐍](https://www.python.org/) - Core Programming Language
+- [argparse](https://docs.python.org/3/library/argparse.html) - Main Library for parsing arguments
 
 ## ✍️ Authors <a name = "authors"></a>
 
@@ -132,6 +185,6 @@ Add additional notes about how to deploy this on a live system.
 
 ## 🎉 Acknowledgements <a name = "acknowledgement"></a>
 
-- Hat tip to anyone whose code was used
-- Inspiration
-- References
+- [Portainer]() and its development team
+- My Collage Professor _Rodrigo Orizondo_ 🕊️🙏 for the inspiration
+- The DevOps community

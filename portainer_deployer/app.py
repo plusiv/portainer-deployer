@@ -252,7 +252,7 @@ class PortainerDeployer:
 
         mutually_exclusive_name_id.add_argument('--id',
             action='store',
-            help="Id for the stack when set action to 'get'",          
+            help="Id of the stack to look for",          
             type=int
         )
 
@@ -267,7 +267,7 @@ class PortainerDeployer:
         mutually_exclusive_name_id.add_argument('--all',
             '-a',
             action='store_true',
-            help="Gets all stacks in portainer",   
+            help="Gets all stacks",   
         )
 
         parser_get.set_defaults(func=self._get_sub_command)
@@ -287,14 +287,14 @@ class PortainerDeployer:
             '-p',
             action='store',
             type=str,
-            help='The path to Docker Compose file for the stack. An alternative to pass the stack as string.',
+            help='The path to Docker Compose file for the stack. An alternative to pass the stack as string',
             required=False,
             default=None)
 
         parser_deploy.add_argument('--name',
             '-n',
             action='store',
-            help="Name of the stack to look for.",
+            help="Name of the stack to look for",
             type=str
         )
         
@@ -303,7 +303,7 @@ class PortainerDeployer:
             action='extend', 
             type=str,
             nargs='+',
-            help='Modify the stack file/string by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d=value2',
+            help="Modify the stack file/string by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2, value3]'",
         )
 
 
@@ -312,7 +312,7 @@ class PortainerDeployer:
             required=True if len(sys.argv) > 2 else False,
             action='store',
             type=int,
-            help='Endponint Id in Portainer'
+            help='Endponint Id to deploy the stack'
         )
 
 
@@ -329,13 +329,13 @@ class PortainerDeployer:
             action='extend',
             nargs='+',
             type=str,
-            help='Set a config value')
+            help="Set a config value specifying the section, key and value. e.g. --set section.url='http://localhost:9000'")
 
         mutually_exclusive_config.add_argument('--get',
             '-g',
             action='store',
             type=str,
-            help='Get a config value')
+            help='Get a config value. e.g. --get section.port')
 
         parser_config.set_defaults(func=self._config_sub_command)
  
