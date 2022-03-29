@@ -448,7 +448,7 @@ class PortainerDeployer:
             response = self.api_consumer.post_stack_from_file(path=args.path, name=args.name, endpoint_id=args.endpoint)
 
         else:
-            response = generate_response('No stack argument specified', 'No stack argument specified. Please use "--stack" or "--path" argument.')
+            response = generate_response('No stack argument specified', 'No stack specified. Please pass it as stdin or use the "--path" argument.')
 
         return response
 
