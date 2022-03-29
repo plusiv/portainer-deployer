@@ -2,6 +2,7 @@ import argparse
 import sys
 import os
 from urllib import response
+from click import FileError
 import requests
 from json import loads
 from urllib3.exceptions import InsecureRequestWarning
@@ -179,7 +180,7 @@ class PortainerAPIConsumer:
             return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code)
         
         except FileNotFoundError as e:
-            return generate_response(f'File {path} not found.', code=None)
+            return generate_response(f'File {path} not found. {e}', code=None)
         
         except Exception as e:
             return generate_response(str(e), None)
@@ -425,8 +426,6 @@ class PortainerDeployer:
             response = self.api_consumer.post_stack_from_str(stack=''.join(args.stack.readlines()), name=args.name, endpoint_id=args.endpoint)
         
         elif args.path:
-            if not os.path.isfile(args.path):
-                return generate_response(f'Invalid path to Docker Compose file: {args.path}')
             if not validate_yaml(path=args.path):
                 return generate_response('Invalid stack', 'Stack is not valid yaml format')
 
