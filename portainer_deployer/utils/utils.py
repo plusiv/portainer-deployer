@@ -1,6 +1,6 @@
 from datetime import datetime as dt
 from hashlib import sha256
-from yaml import Loader, load, dump
+from yaml import Loader, load, dump, YAMLError
 from re import match
 from typing import Any
 
@@ -130,6 +130,34 @@ def validate_key_value_lst(pair: str) -> bool:
         return True
 
     return False
+
+def validate_yaml(path: str = None, data: str = None) -> bool:
+    """Validate a yaml file.
+
+    Args:
+        path (str, optional): Path to the yaml file. Defaults to None.
+        data (str, optional): Data to be validated in case path is not set. Defaults to None.
+
+    Returns:
+        bool: True if is valid, False otherwise.
+    """    
+    try:
+        if path:
+            with open(path, 'r') as f:
+                load(f, Loader=Loader)
+            return True
+        
+        elif data:
+            load(data, Loader=Loader)
+            return True
+
+        else:
+            return False
+        
+    except YAMLError:
+        return False
+    except FileNotFoundError:
+        return False
 
 def generate_response(message: str, details: str=None, status: bool=False, code: int = None) -> dict:
     return {

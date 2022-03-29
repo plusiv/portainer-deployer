@@ -5,7 +5,7 @@ from urllib import response
 import requests
 from json import loads
 from urllib3.exceptions import InsecureRequestWarning
-from utils.utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst, generate_response 
+from utils.utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst, generate_response, validate_yaml 
 from config.config import ConfigManager
 
 class PortainerAPIConsumer:
@@ -273,27 +273,27 @@ class PortainerDeployer:
         # ========================== Sub-commands for deploy ==========================
         parser_deploy = subparsers.add_parser('deploy', help='Help for action Deploy')
 
-        mutually_exclusive_stack_path = parser_deploy.add_mutually_exclusive_group()
+        parser_deploy.add_mutually_exclusive_group()
 
-        mutually_exclusive_stack_path.add_argument('stack',
+        parser_deploy.add_argument('stack',
             action='store',
             nargs='?',
-            help="Docker Compose string for the satack",
+            help="Docker Compose string for the stack",
             default=(None if sys.stdin.isatty() else sys.stdin))
 
         
-        mutually_exclusive_stack_path.add_argument('--path',
+        parser_deploy.add_argument('--path',
             '-p',
             action='store',
             type=str,
-            help='The path to Docker Compose file for the stack',
+            help='The path to Docker Compose file for the stack. An alternative to pass the stack as string.',
             required=False,
             default=None)
 
         parser_deploy.add_argument('--name',
             '-n',
             action='store',
-            help="Name of the stack to look for",
+            help="Name of the stack to look for.",
             type=str
         )
         
@@ -414,14 +414,21 @@ class PortainerDeployer:
         if args.endpoint is None:
             return generate_response('Endpoint not set', 'Endpoint not set. Please set the endpoint id with --endpoint')
 
+        if args.stack and args.path:
+            print('Warning!!! Stack stdin and Path are both set. By default the stdin is used, so that, provided path will be ignored.\n')
+
         if args.stack:
             if args.update_keys:
-                return generate_response('Invalid use of --update-keys', 'You can not use "--update-keys" argument with "--stack" argument. It is only available for "--path" argument.')
-            response = self.api_consumer.post_stack_from_str(stack=''.join(args.stack.readlines()), endpoint_id=args.endpoint)
+                return generate_response('Invalid use of --update-keys', 'You can not use "--update-keys" argument with "stack" positional argument. It is only available for "--path" argument.')
+            if not validate_yaml(data=args.stack):
+                return generate_response('Invalid stack', 'Stack is not valid yaml format')
+            response = self.api_consumer.post_stack_from_str(stack=''.join(args.stack.readlines()), name=args.name, endpoint_id=args.endpoint)
         
         elif args.path:
             if not os.path.isfile(args.path):
                 return generate_response(f'Invalid path to Docker Compose file: {args.path}')
+            if not validate_yaml(path=args.path):
+                return generate_response('Invalid stack', 'Stack is not valid yaml format')
 
             if args.update_keys:
                 for pair in args.update_keys:
