@@ -111,6 +111,9 @@ class PortainerAPIConsumer:
             dict: Dictionary with the status and detail of the operation.
         """
         try:
+            if not validate_yaml(data=stack):
+                raise Exception('Invalid stack', 'Stack is not in a valid yaml format.')
+
             name = name if name else generate_random_hash()
 
             params = {
@@ -153,6 +156,9 @@ class PortainerAPIConsumer:
         """        
         try:
             name = name if name else generate_random_hash()
+            
+            if not validate_yaml(path=path):
+                raise Exception('Invalid stack', 'Stack is not in a valid yaml format.')
             
             # Open file
             with open(path, 'r') as f:
@@ -421,14 +427,10 @@ class PortainerDeployer:
         if args.stack:
             if args.update_keys:
                 return generate_response('Invalid use of --update-keys', 'You can not use "--update-keys" argument with "stack" positional argument. It is only available for "--path" argument.')
-            if not validate_yaml(data=args.stack):
-                return generate_response('Invalid stack', 'Stack is not valid yaml format')
+
             response = self.api_consumer.post_stack_from_str(stack=''.join(args.stack.readlines()), name=args.name, endpoint_id=args.endpoint)
         
         elif args.path:
-            if not validate_yaml(path=args.path):
-                return generate_response('Invalid stack', 'Stack is not valid yaml format')
-
             if args.update_keys:
                 for pair in args.update_keys:
                     if validate_key_value(pair=pair):
