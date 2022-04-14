@@ -72,11 +72,11 @@ You can consult more information about allowed arguments and subcommands by ente
 There is some intallation methods for this application and they will be listed down below:
 
 ### Python installation
-This method requires a modern version of [Python 3]() already installed.
+This method requires a modern stable version of [Python 3](https://docs.python.org/3/whatsnew/changelog.html) already installed.
 
 ```shell 
 $ git clone https://github.com/Jorgmassih/portainer-deployer.git
-$ python -m pip install -e .
+$ python setup.py install
 $ portainer-deployer --version
 ```
 
@@ -87,7 +87,7 @@ $ git clone https://github.com/Jorgmassih/portainer-deployer.git
 $ cd portainer-deployer
 $ python -m venv pd_env
 $ source ./pd_env/bin/activate
-$ python -m pip install -e .
+$ python setup.py install
 $ portainer-deployer --version
 ```
 
@@ -111,7 +111,7 @@ $ alias pd="docker run --rm -v path/to/config/file:/etc/pdcli/app.conf portainer
 $ pd --help
 ```
 
-> Note: Binary installation will be available soon in next releases.
+> __Binary installation__ will be available soon in next releases. Please be patient.
 ## 🔧 Configuring <a name = "configuring"></a>
 
 There's two ways to go ahead with the configuration, the first one is by using the `config` sub-command to set all necessary variables. The another one is by editing directly the _config file_. The first one mentioned is strongly recommended to avoid misconfigurations.
@@ -222,10 +222,14 @@ optional arguments:
 
 ## ✍️ Authors <a name = "authors"></a>
 
-- [@jorgmassih](https://github.com/jorgmassih) - Idea & Initial work
+- [@jorgmassih👨‍💻](https://github.com/jorgmassih) - Idea & Initial work
 
 ## 🎉 Acknowledgements <a name = "acknowledgement"></a>
 
-- [Portainer]() and its development team
+- [Portainer](https://www.portainer.io/about) and its development team
 - My Collage Professor _Rodrigo Orizondo (@yoyirod)_ 🕊️🙏 for the inspiration
 - The DevOps community
+
+## 🤝 Contributions <a name = "contributions"></a>
+I'm open to contributions!
+If you are insterested in collaboring, you can contact me via the info of [my bio](https://github.com/Jorgmassih).
