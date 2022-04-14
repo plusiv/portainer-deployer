@@ -1,0 +1,6 @@
+**/*Env
+**/*.git*
+**/__pycache__
+**/miscellaneous
+**/.env*
+**/app.conf*
