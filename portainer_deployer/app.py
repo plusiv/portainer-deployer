@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
+
+import os
 import argparse
 import sys
 import requests
 from urllib3.exceptions import InsecureRequestWarning
-from utils.utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst, generate_response, validate_yaml 
-from config.config import ConfigManager
+from .utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst, generate_response, validate_yaml 
+from .config import ConfigManager
 
 class PortainerAPIConsumer:
     """Class to manage the Portainer API
@@ -198,10 +201,11 @@ class PortainerDeployer:
     def __init__(self) -> None:
         """Initialize the PortainerDeployer class and runs the main function.
         """        
+        local_path = os.path.abspath(os.path.dirname(__file__))
 
         # Load .env file
-        env_file = ConfigManager('.env', default_section='CONFIG')
-        self.PATH_TO_CONFIG = env_file.path_to_config
+        env_file = ConfigManager(os.path.join(local_path, '.env'), default_section='CONFIG')
+        self.PATH_TO_CONFIG = os.path.join(local_path, env_file.path_to_config)
 
         # Set API consummer object
         self.api_consumer = PortainerAPIConsumer(api_config_path=self.PATH_TO_CONFIG)
@@ -446,6 +450,9 @@ class PortainerDeployer:
 
         return response
 
+def main():
+    """Main function."""
+    PortainerDeployer().run()
 
 if __name__ == '__main__':
-    PortainerDeployer().run()
+    main()
