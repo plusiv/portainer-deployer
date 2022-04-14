@@ -23,6 +23,7 @@
 
 - [About](#about)
 - [Getting Started](#getting_started)
+- [Installation](#installation)
 - [Configuring](#configuring)
 - [Usage](#usage)
 - [Built Using](#built_using)
@@ -34,7 +35,7 @@ This is not an official [Portainer](https://www.portainer.io/) software, it is j
 
 ## 🧐 About <a name = "about"></a>
 
-__Portainer Deployer__ is a command-line tool built in Python to abstract some [Portainer](https://www.portainer.io/)'s features by using its [API](https://docs.portainer.io/v/ce-2.11/). The principal use case for this application is to manage Stacks using the terminal in the CI/CD process, making it faster and easy.
+__Portainer Deployer__ is a command-line tool developed in Python to abstract some [Portainer](https://www.portainer.io/)'s features by using its [API](https://docs.portainer.io/v/ce-2.11/). The principal use case for this application is to manage Stacks using the terminal in the CI/CD process, making it faster and easy.
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 
@@ -67,10 +68,50 @@ $ cat /path/to/my/docker-compose.yml | portainer-deployer deploy --endpoint 2 --
 
 You can consult more information about allowed arguments and subcommands by entering `portainer-deployer --help` or `portainer-deployer -h`.
 
-### Installing
+## Installing
+There is some intallation methods for this application and they will be listed down below:
 
-TODO
+### Python installation
+This method requires a modern version of [Python 3]() already installed.
 
+```shell 
+$ git clone https://github.com/Jorgmassih/portainer-deployer.git
+$ python -m pip install -e .
+$ portainer-deployer --version
+```
+
+If you want to avoid installing the `portainer-deployer` dependencies in your main python environment you can create a virtual environment before installing it:
+
+```shell 
+$ git clone https://github.com/Jorgmassih/portainer-deployer.git
+$ cd portainer-deployer
+$ python -m venv pd_env
+$ source ./pd_env/bin/activate
+$ python -m pip install -e .
+$ portainer-deployer --version
+```
+
+### Docker installation
+This is the recommended method in case you don't have the required Python version or simply any installation of Python.
+
+If you want to use the tool but without installing it in your environment to avoid overlaping with others applications or if you are a __Windows__ user, this could be a fancy solution for you.
+
+The idea is create an isolation for executing the applicatión in its recommended environment.
+
+To get started with this method make you have a [stable version](https://docs.docker.com/release-notes/) of Docker installed by running `docker -v`.
+
+```shell
+$ docker pull jorgmassih/portainer-deployer
+$ docker run --rm -v path/to/config/file:/etc/pdcli/app.conf portainer-deployer --version # change --version for your desired command of portainer-deployer
+```
+
+Optionally you could use an `alias` for simplifying the command.
+```shell
+$ alias pd="docker run --rm -v path/to/config/file:/etc/pdcli/app.conf portainer-deployer"
+$ pd --help
+```
+
+> Note: Binary installation will be available soon in next releases.
 ## 🔧 Configuring <a name = "configuring"></a>
 
 There's two ways to go ahead with the configuration, the first one is by using the `config` sub-command to set all necessary variables. The another one is by editing directly the _config file_. The first one mentioned is strongly recommended to avoid misconfigurations.
@@ -177,7 +218,7 @@ optional arguments:
 ## ⛏️ Built Using <a name = "built_using"></a>
 
 - [Python 🐍](https://www.python.org/) - Core Programming Language
-- [argparse](https://docs.python.org/3/library/argparse.html) - Main Library for parsing arguments
+- [argparse](https://docs.python.org/3/library/argparse.html) - Main Python library for parsing arguments
 
 ## ✍️ Authors <a name = "authors"></a>
 
@@ -186,5 +227,5 @@ optional arguments:
 ## 🎉 Acknowledgements <a name = "acknowledgement"></a>
 
 - [Portainer]() and its development team
-- My Collage Professor _Rodrigo Orizondo_ 🕊️🙏 for the inspiration
+- My Collage Professor _Rodrigo Orizondo (@yoyirod)_ 🕊️🙏 for the inspiration
 - The DevOps community
