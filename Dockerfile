@@ -5,24 +5,15 @@ FROM python:${PYTHON_VERSION}-alpine${ALPINE_VERSION}
 
 # Set Environment Variables
 ENV WORKDIR /app
-ENV SRC_DIR ${WORKDIR}/portainer_deployer
-ENV CONFIG_PATH /etc/pdcli
+ENV PORTAINER_DEPLOYER_CONF_PATH /etc/portainer_deployer
 
 WORKDIR ${WORKDIR}
 
 # Copy application files
 COPY . .
 
-# Create config directory
-RUN mkdir -p ${CONFIG_PATH}
-
-# Create .env file for application
-RUN touch ${SRC_DIR}/.env && \
-        echo "[CONFIG]" >> ${SRC_DIR}/.env && \
-        echo "PATH_TO_CONFIG=$CONFIG_PATH/app.conf" >> ${SRC_DIR}/.env
-
 # Install application
-RUN pip install -e .
+RUN python setup.py install
 
 # Run application
 ENTRYPOINT [ "portainer-deployer" ]
