@@ -1,6 +1,6 @@
-[Portainer]
-URL=
-PORT=
-USERNAME=
-TOKEN=
-SSL=
+[PORTAINER]
+url=
+port=
+username=
+token=
+ssl=yes
