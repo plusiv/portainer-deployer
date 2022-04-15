@@ -241,6 +241,6 @@ optional arguments:
 - My Collage Professor _Rodrigo Orizondo (@yoyirod)_ 🕊️🙏 for the inspiration
 - The DevOps community
 
-## 🤝 Contributions <a name = "contributions"></a>
+## 🤝 Contributing <a name = "contributing"></a>
 I'm open to contributions!
 If you are insterested in collaboring, you can contact me via the info of [my bio](https://github.com/Jorgmassih).
