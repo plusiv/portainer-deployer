@@ -13,7 +13,7 @@ on:
 
 jobs:
   test:
-    name: Test the application
+    name: Test python package
     runs-on: ${{ matrix.os }} 
     strategy:
           matrix:
@@ -24,4 +24,14 @@ jobs:
       - uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }} 
-    
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Run tests
+        run: python -m unittest tests/*
+      - name: Test installation
+        run: | 
+          python setup.py install
+          portainer-deployer -v
+  
