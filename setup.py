@@ -111,7 +111,7 @@ setup(
     ],
     tests_require=['unittest'],
     python_requires=">=3.8.10",
-    packages=find_packages('portainer_deployer'),
+    packages=find_packages(where=PKG_NAME, include=['*']),
     entry_points={
         "console_scripts": [
             f"portainer-deployer={PKG_NAME}.app:main",
