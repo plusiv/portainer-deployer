@@ -28,6 +28,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Create config files
+        run: |
+          touch portainer_deployer/.env
+          echo "[CONFIG]" >> portainer_deployer/.env
+          echo "PATH_TO_CONFIG=./app.conf" >> portainer_deployer/.env
+          cp portainer_deployer/app.conf.example portainer_deployer/app.conf
       - name: Run tests
         run: python -m unittest tests/*
       - name: Test installation
