@@ -2,7 +2,7 @@ name: Pull Request to Main Action
 on:
   pull_request:
     branches:
-      - "master"
+      - "main"
     paths:
       - "**/*.py"
       - "requirements.txt"
