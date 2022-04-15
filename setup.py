@@ -60,7 +60,7 @@ class PostInstallCommand(install):
             try:
                 home_dir = path.expanduser('~')
                 config_dir = path.join(home_dir, f'.{PKG_NAME}')
-                if not path.exists(home_dir):
+                if not path.exists(config_dir):
                     makedirs(config_dir)
 
                 environ[f"{PKG_NAME.upper()}_CONF_PATH"] = config_dir
