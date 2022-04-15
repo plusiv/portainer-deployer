@@ -15,7 +15,7 @@
 
 ---
 
-<p align="center"> Portainer API simplified through command line.
+<p align="center"> Portainer API simplified through command-line interface.
     <br> 
 </p>
 
@@ -29,17 +29,18 @@
 - [Built Using](#built_using)
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgement)
+- [Contributing](#contributing)
 
 ## :warning:Important Notice:warning:
-This is not an official [Portainer](https://www.portainer.io/) software, it is just and Open Source tool to make an abstraction of its API.
+This is not an official [Portainer](https://www.portainer.io/about) software, it is just and Open Source tool to make an abstraction of Portainer's API.
 
 ## 🧐 About <a name = "about"></a>
 
-__Portainer Deployer__ is a command-line tool developed in Python to abstract some [Portainer](https://www.portainer.io/)'s features by using its [API](https://docs.portainer.io/v/ce-2.11/). The principal use case for this application is to manage Stacks using the terminal in the CI/CD process, making it faster and easy.
+__Portainer Deployer__ is a [Command-line interface](https://en.wikipedia.org/wiki/Command-line_interface) tool developed in Python to abstract some [Portainer](https://www.portainer.io/)'s features by using its [API](https://docs.portainer.io/v/ce-2.11/). The principal use case for this application is to manage Stacks in the CI/CD process, making it faster and easy.
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 
-Since __Portainer Deployer__ is a command line tool, you can invoke the application by running `portainer-deployer` after installation. We know could be tedious using the entire command to call the application, so, feel free to use an alias. e.g.
+Since __Portainer Deployer__ is a command line tool, you can invoke the application by running `portainer-deployer` after installation. We know that could be tedious using the entire command to call the application, so, feel free to use an alias. e.g.
 
 ```shell
 $ alias pd="portainer-deployer"
@@ -56,20 +57,24 @@ Get Stacks by its id
 ```shell
 $ portainer-deployer get --id <random-id>
 ```
-Deploy Stack from file
+Deploy Stack from file by specifying its path
 ```shell
 $ portainer-deployer deploy --path /path/to/my/docker-compose.yml --endpoint 45 --update-keys a.b.c=value e.f.g='[value2,value3...value4]' --name myStack
 ```
-
-Deploy Stack passing string to stdin
+Deploy Stack passing string through  [standard input (stdin)](https://www.ibm.com/docs/en/ibm-mq/8.0?topic=commands-standard-input-output)
 ```shell
 $ cat /path/to/my/docker-compose.yml | portainer-deployer deploy --endpoint 2 --name myStack
 ```
+or
+```shell
+$ portainer-deployer deploy --endpoint 2 --name myStack "version: 3\n services:\n web:\n image:nginx"
+```
+> __Notice__ that using the _stdin_ can be faster than specifying a path to be processed by the program, otherwise, specifying a path grants access to some features such as modifying some keys in runtime by using the arguments `--update-keys` or `-u`. 
 
-You can consult more information about allowed arguments and subcommands by entering `portainer-deployer --help` or `portainer-deployer -h`.
+You can consult more information about allowed arguments and subcommands by running `portainer-deployer --help` or `portainer-deployer -h`.
 
 ## Installing
-There is some intallation methods for this application and they will be listed down below:
+There are many installation methods for this tool and they will be listed down below:
 
 ### Python installation
 This method requires a modern stable version of [Python 3](https://docs.python.org/3/whatsnew/changelog.html) already installed.
@@ -94,11 +99,11 @@ $ portainer-deployer --version
 ### Docker installation
 This is the recommended method in case you don't have the required Python version or simply any installation of Python.
 
-If you want to use the tool but without installing it in your environment to avoid overlaping with others applications or if you are a __Windows__ user, this could be a fancy solution for you.
+If you want to use the tool but without installing it in your environment to avoid overlaping with others applications, or if you are a __Windows__ user, this could be a fancy solution for you.
 
-The idea is create an isolation for executing the applicatión in its recommended environment.
+The idea is create an isolation for executing the applicatión in a recommended stable environment.
 
-To get started with this method make you have a [stable version](https://docs.docker.com/release-notes/) of Docker installed by running `docker -v`.
+To get started with this method make sure you have a [stable version](https://docs.docker.com/release-notes/) of Docker installed by running `docker -v` and run the following snippet:
 
 ```shell
 $ docker pull jorgmassih/portainer-deployer
@@ -144,7 +149,6 @@ Also, here is a list of all keys of the variables that can be set and get:
 | username |                  | Username to connect to the API.                 |
 | token    |                  | Token given by Portainer to connect to the API. |
 | ssl      | __yes__, no     | Use SSL for secure connections.                 |
-
 ### Examples
 Set Portainer `url`
 ```shell
@@ -157,18 +161,23 @@ $ portainer-deployer config --get portainer.port
 ```
 > __In case of__ you try to set a variable not listed beffore, the operation won't take effect.
 
-### Editing directly the `config file`
-Usually the app configuration is located at `/etc/portainer-deployer/app.conf` and is in [INI](https://en.wikipedia.org/wiki/INI_file) format, so you would have the right permissions to edit the config file, which looks like: 
+### Editing the `config file`
+At the moment of the installation the script will serch if the environmental variable `PORTAINER_DEPLOYER_CONF_PATH` is set with any valid dir path and will create the `app.conf` file there, this means you can set the path of the configuration directory before running `python setup.py install`.
 
+In case the path is not set, the installation script will create the configuration directory in the default location `/etc/portainer_deployer`, if an issue occurs in the process the configuration will be created in `~/.portainer_deployer/app.conf`
+
+The `app.conf` file is in [INI](https://en.wikipedia.org/wiki/INI_file) format and looks like:
 ```ini
 # app.conf
 [PORTAINER]
-url = https://portainer.host.lab
+url = https://your-portainer.host.lab
 port = 9443
-username = portainer-deployer
-token = fal324ASDdjhdfasdjfaADSFADfasdgasd-
-ssl = yes
+username = <YOUR PORTAINER USERNAME>
+token = <YOUR PORTAINER TOKEN>
+ssl = yes #It can be yes or not, [T,t]rue or [F,f]alse
 ```
+
+> If you are using the Docker installation method make sure to create a volume with the configuration file inside.
 
 ## 🎈 Usage <a name="usage"></a>
 Portainer Deployer is composed by 3 main sub-commands:
@@ -179,7 +188,9 @@ Portainer Deployer is composed by 3 main sub-commands:
 In this reading we are going to focus in `get` and `deploy` sub-commands.
 
 ### The `get` sub-command
-By entering `portainer-deployer get` you will be able to retrive stacks information from Portainer. The command `portainer-deployer get -h` will result in:
+By runnnig `portainer-deployer get` you will be able to retrive stacks information from Portainer by _name_ or _id_, you can retreive information of all stacks by setting the `--all` argument.
+
+The command `portainer-deployer get -h` will result in:
 
 ```shell
 usage: portainer-deployer get [-h] [--id ID | --name NAME | --all]
