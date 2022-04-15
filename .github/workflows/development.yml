@@ -1,0 +1,27 @@
+name: Pull Request to Main Action
+on:
+  pull_request:
+    branches:
+      - "master"
+    paths:
+      - "**/*.py"
+      - "requirements.txt"
+      - "Dockerfile"
+      - "**/*.conf*"
+      - ".github/workflows/development.yml"
+    types: [opened, synchronize, reopened, labeled]
+
+jobs:
+  test:
+    name: Test the application
+    runs-on: ${{ matrix.os }} 
+    strategy:
+          matrix:
+            os: [ubuntu-latest, macos-latest]
+            python-version: [ '3.5', '3.6', '3.7', '3.8', '3.9', '3.10' ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }} 
+    
