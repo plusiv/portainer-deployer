@@ -1,6 +1,6 @@
 <p align="center">
   <a href="" rel="noopener">
- <img width=200px height=200px src="https://i.imgur.com/6wj0hh6.jpg" alt="Project logo"></a>
+ <img width=200px height=200px src="https://i.imgur.com/a0WbfH2.png" alt="Project logo"></a>
 </p>
 
 <h3 align="center">Portainer Deployer</h3>
@@ -241,6 +241,6 @@ optional arguments:
 - My Collage Professor _Rodrigo Orizondo (@yoyirod)_ 🕊️🙏 for the inspiration
 - The DevOps community
 
-## 🤝 Contributions <a name = "contributions"></a>
+## 🤝 Contributing <a name = "contributing"></a>
 I'm open to contributions!
 If you are insterested in collaboring, you can contact me via the info of [my bio](https://github.com/Jorgmassih).
