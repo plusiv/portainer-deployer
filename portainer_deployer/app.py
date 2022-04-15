@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import os
 import argparse
 import sys
 import requests
+from os import path
 from urllib3.exceptions import InsecureRequestWarning
 from .utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst, generate_response, validate_yaml 
 from .config import ConfigManager
@@ -201,11 +201,11 @@ class PortainerDeployer:
     def __init__(self) -> None:
         """Initialize the PortainerDeployer class and runs the main function.
         """        
-        local_path = os.path.abspath(os.path.dirname(__file__))
+        local_path = path.abspath(path.dirname(__file__))
 
         # Load .env file
-        env_file = ConfigManager(os.path.join(local_path, '.env'), default_section='CONFIG')
-        self.PATH_TO_CONFIG = os.path.join(local_path, env_file.path_to_config)
+        env_file = ConfigManager(path.join(local_path, '.env'), default_section='CONFIG')
+        self.PATH_TO_CONFIG = path.join(local_path, env_file.path_to_config)
 
         # Set API consummer object
         self.api_consumer = PortainerAPIConsumer(api_config_path=self.PATH_TO_CONFIG)
