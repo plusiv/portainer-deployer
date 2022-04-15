@@ -48,7 +48,7 @@ class PostInstallCommand(install):
             if not path.exists(self.config_path_dir):
                 makedirs(self.config_path_dir)
 
-            if not path.exists(path.join(self.config_path_dir, 'app.conf')):
+            if not path.isfile(path.join(self.config_path_dir, 'app.conf')):
                 # Copy the config file to in config directory
                 copy(config_template_path, path.join(self.config_path_dir, 'app.conf'))
 
@@ -65,7 +65,7 @@ class PostInstallCommand(install):
 
                 environ[f"{PKG_NAME.upper()}_CONF_PATH"] = config_dir
             
-                if not path.exists(path.join(config_dir, 'app.conf')):
+                if not path.isfile(path.join(config_dir, 'app.conf')):
                     # Copy the config file in the config directory
                     copy(config_template_path, path.join(config_dir, 'app.conf'))
 
