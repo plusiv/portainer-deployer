@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
-import argparse
-import sys
-import requests
 from os import path
 from urllib3.exceptions import InsecureRequestWarning
 from .utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst, generate_response, validate_yaml 
 from .config import ConfigManager
-
+import argparse
+import sys
+import requests
 class PortainerAPIConsumer:
     """Class to manage the Portainer API
     """    
@@ -168,9 +167,7 @@ class PortainerAPIConsumer:
                 }
                 
                 response = requests.post(self.__portainer_connection_str + '/api/stacks',
-                    data={
-                        "Name": name
-                    }, 
+                    data={ "Name": name}, 
                     params=params,
                     files={'file': f},
                     headers=self.__connection_headers, 
@@ -181,14 +178,14 @@ class PortainerAPIConsumer:
                 print(f"Stack {name} created successfully.")
                 return generate_response(f'Stack {name} from {path} posted successfully under the endpoint {endpoint_id}.', status=True, code=response.status_code)
                 
-        except requests.exceptions.RequestException as e:
-            return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code)
+        except requests.exceptions.RequestException as error:
+            return generate_response(error.response.json()['message'], error.response.json()['details'], code=error.response.status_code)
         
-        except FileNotFoundError as e:
-            return generate_response(f'File {path} not found. {e}', code=None)
+        except FileNotFoundError as error:
+            return generate_response(f'File {path} not found. {error}', code=None)
         
-        except Exception as e:
-            return generate_response(str(e), None)
+        except Exception as error:
+            return generate_response(str(error), None)
 
 
     def update_stack(self, stack_id: str, stack: str):
@@ -307,7 +304,7 @@ class PortainerDeployer:
             action='extend', 
             type=str,
             nargs='+',
-            help="Modify the stack file/string by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2, value3]'",
+            help="Modify the stack file by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2, value3]'"
         )
 
 
