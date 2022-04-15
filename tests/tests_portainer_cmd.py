@@ -3,8 +3,8 @@ from unittest.mock import Mock, MagicMock
 from random import randint
 
 
-from app import PortainerDeployer
-from utils.utils import generate_response
+from portainer_deployer.app import PortainerDeployer
+from portainer_deployer.utils import generate_response
 
 class PortainerDeployerTest(PortainerDeployer):
     def __init__(self):
@@ -55,7 +55,7 @@ class PortainerCMDTest(unittest.TestCase):
         args.func(args)
         
         tester.api_consumer.get_stack.assert_called_once_with(name=None, stack_id=stack_id)
-        self.assertEquals(args.func(args), generated_response)
+        self.assertEqual(args.func(args), generated_response)
 
         # Assert error handling
         tester = self.tester
@@ -66,7 +66,7 @@ class PortainerCMDTest(unittest.TestCase):
         tester.api_consumer.get_stack.return_value = generated_response 
         args = tester.parser.parse_args(cmd_args)
         
-        self.assertEquals(args.func(args), generated_response)        
+        self.assertEqual(args.func(args), generated_response)        
 
 
     def test_get_stack_by_name(self):
@@ -80,7 +80,7 @@ class PortainerCMDTest(unittest.TestCase):
         args.func(args)
         
         tester.api_consumer.get_stack.assert_called_once_with(name=stack_name, stack_id=None)
-        self.assertEquals(args.func(args), generated_response)
+        self.assertEqual(args.func(args), generated_response)
 
         # Assert error handling
         tester = self.tester
@@ -91,7 +91,7 @@ class PortainerCMDTest(unittest.TestCase):
         cmd_args = ['get', '--name', stack_name] 
         args = tester.parser.parse_args(cmd_args)
         
-        self.assertEquals(args.func(args), generated_response)        
+        self.assertEqual(args.func(args), generated_response)        
 
         
     def test_deploy_stack_by_stdin(self):
@@ -111,7 +111,7 @@ class PortainerCMDTest(unittest.TestCase):
         tester.api_consumer.post_stack_from_str.return_value = generated_response
         cmd_args = ['deploy', '--endpoint', str(endpoint), '--name', name, 'wrong_stack']
         args = tester.parser.parse_args(cmd_args)
-        self.assertEquals(args.func(args), generated_response)
+        self.assertEqual(args.func(args), generated_response)
 
 
     def test_deploy_stack_by_path(self):
