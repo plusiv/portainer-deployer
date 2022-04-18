@@ -12,7 +12,7 @@ config:
 - portainer_deployer/**/*.example
 
 doc:
-- README.md'
+- README.md
 
 setup:
 - setup.py
