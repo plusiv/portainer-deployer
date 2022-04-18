@@ -1,0 +1,29 @@
+# Add 'repo' label to any root file changes
+repo:
+- '*'
+
+test:
+- tests/**/*.py
+
+source:
+- portainer_deployer/**/*.py
+
+config:
+- portainer_deployer/**/*.example
+
+doc:
+- README.md'
+
+setup:
+- setup.py
+
+dependencies:
+- requirements*.txt
+
+build:
+- .dockerignore
+- docker-compose*.yml
+- Dockerfile
+
+ci:
+- .github/**/*
