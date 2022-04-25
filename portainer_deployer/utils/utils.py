@@ -3,6 +3,7 @@ from hashlib import sha256
 from yaml import Loader, load, dump, YAMLError
 from re import match
 from typing import Any
+from os import path, access, W_OK, R_OK
 
 def format_stack_info_generator(stacks: list):
     """Format the list of stacks from Portainer and return a generator with it.
@@ -117,6 +118,7 @@ def validate_key_value(pair: str) -> bool:
 
     return False
 
+
 def validate_key_value_lst(pair: str) -> bool:
     """Validate a key=value pair, where value is a list of values. i.e. a.b.c='[a,b,d]' d='[1,2,a,c]'
 
@@ -130,6 +132,7 @@ def validate_key_value_lst(pair: str) -> bool:
         return True
 
     return False
+
 
 def validate_yaml(path: str = None, data: str = None) -> bool:
     """Validate a yaml file.
@@ -159,6 +162,7 @@ def validate_yaml(path: str = None, data: str = None) -> bool:
     except FileNotFoundError:
         return False
 
+
 def generate_response(message: str, details: str=None, status: bool=False, code: int = None) -> dict:
     return {
         'message': message,
@@ -166,3 +170,27 @@ def generate_response(message: str, details: str=None, status: bool=False, code:
         'status': status,
         'code': code
     }
+
+def update_config_dir(path_to_file: str):
+    """Update the config dir.
+
+    Args:
+        path (str): Path to the config dir.
+    """    
+    try:
+        # Confirm path exists and is a directory
+        if path.exists(path_to_file) and path.isfile(path_to_file) and access(path_to_file, R_OK) and access(path_to_file, W_OK):
+
+            file_abs_path = path.abspath(__file__)
+            env_path = path.join(file_abs_path, '../.env')
+            with open(env_path, 'w') as f:
+                f.write('[CONFIG]\n')
+                f.write(f'PATH_TO_CONFIG={path_to_file}\n')
+        
+    
+    except FileNotFoundError:
+        return f"File {path} not found."	
+    except PermissionError:
+        return f"Permission denied to {path}"
+    except Exception as e:
+        return f"Error: {e}"
