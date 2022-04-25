@@ -124,7 +124,7 @@ There's two ways to go ahead with the configuration, the first one is by using t
 ### Using `config` sub-command 
 By Entering `portainer-deployer config --help` in your shell you will receive:
 ```shell
-$ portainer-deployer config -h                                                                                                                           
+$ portainer-deployer config --help                                                                                                                           
 usage: portainer-deployer config [-h] [--set SET [SET ...] | --get GET]
 
 optional arguments:
@@ -193,6 +193,7 @@ By runnnig `portainer-deployer get` you will be able to retrive stacks informati
 The command `portainer-deployer get -h` will result in:
 
 ```shell
+$ portainer-deployer get --help                                                                        
 usage: portainer-deployer get [-h] [--id ID | --name NAME | --all]
 
 Get a stack info from portainer.
@@ -208,7 +209,8 @@ optional arguments:
 This one allows to post stacks and run them in Portainer, it can be done by passing the string as `stdin` or by passing the `path` to the `yml` file.
 
 ```shell
-usage: portainer-deployer deploy [-h] [--path PATH] [--name NAME] [--update-keys UPDATE_KEYS [UPDATE_KEYS ...]] [--endpoint ENDPOINT] [stack]
+$ portainer-deployer deploy --help
+usage: portainer-deployer deploy [-h] [--path PATH] [--name NAME] [--update-keys UPDATE_KEYS [UPDATE_KEYS ...]] --endpoint ENDPOINT [stack]
 
 positional arguments:
   stack                 Docker Compose string for the stack
@@ -218,11 +220,10 @@ optional arguments:
   --path PATH, -p PATH  The path to Docker Compose file for the stack. An alternative to pass the stack as string
   --name NAME, -n NAME  Name of the stack to look for
   --update-keys UPDATE_KEYS [UPDATE_KEYS ...], -u UPDATE_KEYS [UPDATE_KEYS ...]
-                        Modify the stack file/string by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1
-                        d='[value2, value3]'
+                        Modify the stack file by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2,
+                        value3]'
   --endpoint ENDPOINT, -e ENDPOINT
                         Endponint Id to deploy the stack
-
 ```
 
 
