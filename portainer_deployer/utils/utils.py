@@ -164,6 +164,14 @@ def validate_yaml(path: str = None, data: str = None) -> bool:
 
 
 def generate_response(message: str, details: str=None, status: bool=False, code: int = None) -> dict:
+    """Generate a response to be returned to the client.
+    
+    Args:
+        message (str): Message to be returned.
+        details (str, optional): Details to be returned. Defaults to None.
+        status (bool, optional): Status of the response. Defaults to False.
+        code (int, optional): HTTP code of the response. Defaults to None.
+    """
     return {
         'message': message,
         'details': details if details else message,
