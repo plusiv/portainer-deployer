@@ -189,7 +189,7 @@ def update_config_dir(path_to_file: str):
         # Confirm path exists and is a directory
         if path.exists(path_to_file) and path.isfile(path_to_file) and access(path_to_file, R_OK) and access(path_to_file, W_OK):
 
-            file_abs_path = path.abspath(__file__)
+            file_abs_path = path.abspath(path.dirname(__file__))
             env_path = path.join(file_abs_path, '../.env')
             with open(env_path, 'w') as f:
                 f.write('[CONFIG]\n')
