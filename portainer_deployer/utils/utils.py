@@ -179,6 +179,7 @@ def generate_response(message: str, details: str=None, status: bool=False, code:
         'code': code
     }
 
+
 def update_config_dir(path_to_file: str):
     """Update the config dir.
 
@@ -187,18 +188,22 @@ def update_config_dir(path_to_file: str):
     """    
     try:
         # Confirm path exists and is a directory
-        if path.exists(path_to_file) and path.isfile(path_to_file) and access(path_to_file, R_OK) and access(path_to_file, W_OK):
+        if path.exists(path_to_file) and path.isfile(path_to_file):
+            if access(path_to_file, R_OK) and access(path_to_file, W_OK):
+                file_abs_path = path.abspath(path.dirname(__file__))
+                env_path = path.join(file_abs_path, '../.env')
+                with open(env_path, 'w') as f:
+                    f.write('[CONFIG]\n')
+                    f.write(f'PATH_TO_CONFIG={path_to_file}\n')
+            else:
+                raise PermissionError
 
-            file_abs_path = path.abspath(path.dirname(__file__))
-            env_path = path.join(file_abs_path, '../.env')
-            with open(env_path, 'w') as f:
-                f.write('[CONFIG]\n')
-                f.write(f'PATH_TO_CONFIG={path_to_file}\n')
-        
-    
+        else:
+            raise FileNotFoundError 
+
     except FileNotFoundError:
-        return f"File {path} not found."	
+        return f"File {path_to_file} not found or it could not be a file."	
     except PermissionError:
-        return f"Permission denied to {path}"
+        return f"Permission denied to {path_to_file}, make sure it is writable and readable by App User."
     except Exception as e:
         return f"Error: {e}"

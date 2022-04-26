@@ -6,7 +6,8 @@ from .utils import \
     validate_key_value, \
     validate_key_value_lst, \
     generate_response, \
-    validate_yaml
+    validate_yaml, \
+    update_config_dir
 
 __all__ = [
         'edit_yml_file', 
@@ -16,5 +17,6 @@ __all__ = [
         'validate_key_value', 
         'validate_key_value_lst', 
         'generate_response', 
-        'validate_yaml'
+        'validate_yaml',
+        'update_config_dir'
     ]

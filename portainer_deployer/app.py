@@ -2,7 +2,17 @@
 
 from os import path
 from urllib3.exceptions import InsecureRequestWarning
-from .utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst, generate_response, validate_yaml 
+
+from portainer_deployer.utils.utils import update_config_dir
+from .utils import edit_yml_file, \
+            format_stack_info, \
+            format_stack_info_generator, \
+            generate_random_hash, \
+            validate_key_value, \
+            validate_key_value_lst, \
+            generate_response, \
+            validate_yaml, \
+            update_config_dir
 from .config import ConfigManager
 import argparse
 import sys
@@ -204,8 +214,9 @@ class PortainerDeployer:
         env_file = ConfigManager(path.join(local_path, '.env'), default_section='CONFIG')
         self.PATH_TO_CONFIG = path.join(local_path, env_file.path_to_config)
 
-        # Set API consummer object
-        self.api_consumer = PortainerAPIConsumer(api_config_path=self.PATH_TO_CONFIG)
+        if sys.argv[1] != 'config':
+            # Set API consummer object when not in config mode
+            self.api_consumer = PortainerAPIConsumer(api_config_path=self.PATH_TO_CONFIG)
 
         self.parser = self.__parser()
         
@@ -338,6 +349,13 @@ class PortainerDeployer:
             type=str,
             help='Get a config value. e.g. --get section.port')
 
+
+        mutually_exclusive_config.add_argument('--config-path',
+            '-c',
+            action='store',
+            type=str,
+            help='Set portainer config path. e.g. --config-path /path/to/default.conf')
+
         parser_config.set_defaults(func=self._config_sub_command)
  
         return parser
@@ -350,7 +368,7 @@ class PortainerDeployer:
             error_message (str): Error message to be printed.
             error_code (int, optional): Error code to be used. Defaults to None.
         """        
-        self.parser.error(error_detail)
+        self.parser.error(f'{error_message}\n{error_detail}')
 
 
     def _config_sub_command(self, args) -> dict:
@@ -384,11 +402,19 @@ class PortainerDeployer:
             
             section,key = splited
             print(config.get_var(key=key, section=section))
-           
+
+        elif args.config_path:
+            update = update_config_dir(args.config_path)
+            if update is str:
+                return generate_response(update)
+            else:
+                msg = f'Config path updated to: {args.config_path}' 
+                print(msg)
+                return generate_response(message=msg, status=True)
         else:
             return generate_response('No config action specified')
 
-        return generate_response(f'Config operation {"get" if args.get else "set"} completed successfully', status=True)
+        return generate_response(f'Config operation {"get" if args.get else "set" } completed successfully', status=True)
 
 
     def _get_sub_command(self , args: argparse.Namespace) -> dict:

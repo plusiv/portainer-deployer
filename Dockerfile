@@ -5,15 +5,21 @@ FROM python:${PYTHON_VERSION}-alpine${ALPINE_VERSION}
 
 # Set Environment Variables
 ENV WORKDIR /app
-ENV PORTAINER_DEPLOYER_CONF_PATH /etc/portainer_deployer
+ENV PORTAINER_DEPLOYER_CONF_DIR /etc/portainer-deployer
+ENV PORTAINER_DEPLOYER_CONF_FILE app.conf
 
 WORKDIR ${WORKDIR}
 
 # Copy application files
 COPY . .
 
-# Install application
-RUN python setup.py install
+RUN mkdir -p ${PORTAINER_DEPLOYER_CONF_DIR} && \
+    cp -r ${WORKDIR}/app.conf.example ${PORTAINER_DEPLOYER_CONF_DIR}/${PORTAINER_DEPLOYER_CONF_FILE}
+
+# Install application and configure it 
+RUN python -m pip install --upgrade pip && \ 
+    python -m pip install . && \
+    portainer-deployer config --config-path ${PORTAINER_DEPLOYER_CONF_DIR}/${PORTAINER_DEPLOYER_CONF_FILE}
 
 # Run application
 ENTRYPOINT [ "portainer-deployer" ]
