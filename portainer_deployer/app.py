@@ -354,7 +354,7 @@ class PortainerDeployer:
             '-c',
             action='store',
             type=str,
-            help='Set portainer config path. e.g. --config-path /path/to/default.conf')
+            help='Set Portainer Deployer absulute config path. e.g. --config-path /abusolute/path/to/default.conf')
 
         parser_config.set_defaults(func=self._config_sub_command)
  
