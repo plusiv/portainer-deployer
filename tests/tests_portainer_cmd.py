@@ -1,15 +1,22 @@
 import unittest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from random import randint
-
-
 from portainer_deployer.app import PortainerDeployer
 from portainer_deployer.utils import generate_response
 
 class PortainerDeployerTest(PortainerDeployer):
     def __init__(self):
         super().__init__()
-        self.api_consumer = Mock()
+        self._api_consumer = Mock()
+
+    # Prevent decorator modifies Mock of self.api_consumer
+    @property
+    def api_consumer(self):
+        return self._api_consumer
+    
+    @api_consumer.setter
+    def api_consumer(self, value):
+        ...
 
 
 class PortainerCMDTest(unittest.TestCase):

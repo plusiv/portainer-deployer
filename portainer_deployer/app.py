@@ -14,6 +14,7 @@ from .utils import edit_yml_file, \
             validate_yaml, \
             update_config_dir
 from .config import ConfigManager
+from functools import wraps
 import argparse
 import sys
 import requests
@@ -214,18 +215,31 @@ class PortainerDeployer:
         env_file = ConfigManager(path.join(local_path, '.env'), default_section='CONFIG')
         self.PATH_TO_CONFIG = path.join(local_path, env_file.path_to_config)
 
-        if sys.argv[1] != 'config':
-            # Set API consummer object when not in config mode
-            self.api_consumer = PortainerAPIConsumer(api_config_path=self.PATH_TO_CONFIG)
-
+        self.api_consumer = None
         self.parser = self.__parser()
         
+        
+    # Create API intantiator decorator
+    def use_api(method):
+        """Decorator to use the API.
+
+        Args:
+            func (function): Function to be decorated.
+
+        Returns:
+            function: Decorated function.
+        """
+        @wraps(method)
+        def wrapper(self, *args, **kwargs):
+            # Set API consummer object when not in config mode
+            self.api_consumer = PortainerAPIConsumer(api_config_path=self.PATH_TO_CONFIG)
+            return method(self, *args, **kwargs)
+        return wrapper
 
     def run(self):
         """Run the main function.
         """        
         # Set arguments
-        self.parser = self.__parser()
         parser_args = self.parser.parse_args(args=None if len(sys.argv) > 2 else [sys.argv[1], '-h'] if len(sys.argv) == 2 else ['-h'])
         
         response = parser_args.func(parser_args)
@@ -417,6 +431,7 @@ class PortainerDeployer:
         return generate_response(f'Config operation {"get" if args.get else "set" } completed successfully', status=True)
 
 
+    @use_api
     def _get_sub_command(self , args: argparse.Namespace) -> dict:
         """Get sub-command default function. Excutes get functions according given arguments.
 
@@ -431,7 +446,7 @@ class PortainerDeployer:
 
         return response
         
-
+    @use_api
     def _deploy_sub_command(self, args: argparse.Namespace) -> dict:
         """Deploy sub-command default function. Excutes deploy functions according given arguments.
 
