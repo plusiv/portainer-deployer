@@ -15,7 +15,9 @@ on:
 jobs:
   test:
     name: Test python package
-    runs-on: ${{ matrix.os }} 
+    runs-on: ${{ matrix.os }}
+    env:
+      CONFIG_PATH: ~/pd-config
     strategy:
           matrix:
             os: [ubuntu-latest, macos-latest]
@@ -31,14 +33,15 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Create config files
         run: |
+          mkdir -p $CONFIG_PATH
+          cp portainer_deployer/app.conf.example $CONFIG_PATH/app.conf
           touch portainer_deployer/.env
           echo "[CONFIG]" >> portainer_deployer/.env
-          echo "PATH_TO_CONFIG=./app.conf" >> portainer_deployer/.env
-          cp portainer_deployer/app.conf.example portainer_deployer/app.conf
+          echo "PATH_TO_CONFIG=$CONFIG_PATH/app.conf" >> portainer_deployer/.env
       - name: Run tests
         run: python -m unittest tests/*
       - name: Test installation
         run: | 
-          python setup.py install
+          python -m pip install .
           portainer-deployer -v
   
