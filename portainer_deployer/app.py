@@ -4,15 +4,7 @@ from os import path
 from urllib3.exceptions import InsecureRequestWarning
 
 from portainer_deployer.utils.utils import update_config_dir
-from .utils import edit_yml_file, \
-            format_stack_info, \
-            format_stack_info_generator, \
-            generate_random_hash, \
-            validate_key_value, \
-            validate_key_value_lst, \
-            generate_response, \
-            validate_yaml, \
-            update_config_dir
+from .utils import *
 from .config import ConfigManager
 from functools import wraps
 import argparse
@@ -211,11 +203,14 @@ class PortainerDeployer:
         """        
         local_path = path.abspath(path.dirname(__file__))
 
-        # Load .env file
-        env_file = ConfigManager(path.join(local_path, '.env'), default_section='CONFIG')
-        self.PATH_TO_CONFIG = path.join(local_path, env_file.path_to_config)
+        # Load .env file if it exists, otherwise create a dump path
+        env_file = path.join(local_path, '.env')
+        if path.exists(env_file) and path.isfile(env_file):
+            env_file = ConfigManager(path.join(local_path, '.env'), default_section='CONFIG')
+            self.PATH_TO_CONFIG = path.join(local_path, env_file.path_to_config)
+        else:
+            update_config_dir(path_to_file='/this/is/a/dummy/path/please/create/one.conf', verify=False)
 
-        self.api_consumer = None
         self.parser = self.__parser()
         
         

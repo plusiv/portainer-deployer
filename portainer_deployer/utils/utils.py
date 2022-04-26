@@ -180,18 +180,27 @@ def generate_response(message: str, details: str=None, status: bool=False, code:
     }
 
 
-def update_config_dir(path_to_file: str):
+def update_config_dir(path_to_file: str, verify: bool = True):
     """Update the config dir.
 
     Args:
         path (str): Path to the config dir.
+        strict (bool, optional): If True, the path existence and accessibility will be verified before update path. Defaults to True.
     """    
     try:
+        file_abs_path = path.abspath(path.dirname(__file__))
+        env_path = path.join(file_abs_path, '../.env')
+
+        if not verify:
+            with open(env_path, 'w') as f:
+                f.write('[CONFIG]\n')
+                f.write(f'PATH_TO_CONFIG={path_to_file}\n')
+            
+            return
+
         # Confirm path exists and is a directory
         if path.exists(path_to_file) and path.isfile(path_to_file):
             if access(path_to_file, R_OK) and access(path_to_file, W_OK):
-                file_abs_path = path.abspath(path.dirname(__file__))
-                env_path = path.join(file_abs_path, '../.env')
                 with open(env_path, 'w') as f:
                     f.write('[CONFIG]\n')
                     f.write(f'PATH_TO_CONFIG={path_to_file}\n')
