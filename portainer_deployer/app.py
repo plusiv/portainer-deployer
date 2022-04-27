@@ -387,6 +387,15 @@ class PortainerDeployer:
             args (argparse.Namespace): Parsed arguments.
         """
 
+        if args.config_path:
+            update = update_config_dir(args.config_path)
+            if update is str:
+                return generate_response(update)
+            else:
+                msg = f'Config path updated to: {args.config_path}' 
+                print(msg)
+                return generate_response(message=msg, status=True)
+
         config = ConfigManager(self.PATH_TO_CONFIG)
         if args.set:
             for pair in args.set:
@@ -412,14 +421,6 @@ class PortainerDeployer:
             section,key = splited
             print(config.get_var(key=key, section=section))
 
-        elif args.config_path:
-            update = update_config_dir(args.config_path)
-            if update is str:
-                return generate_response(update)
-            else:
-                msg = f'Config path updated to: {args.config_path}' 
-                print(msg)
-                return generate_response(message=msg, status=True)
         else:
             return generate_response('No config action specified')
 
