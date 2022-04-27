@@ -23,7 +23,6 @@
 
 - [About](#about)
 - [Getting Started](#getting_started)
-- [Installation](#installation)
 - [Configuring](#configuring)
 - [Usage](#usage)
 - [Built Using](#built_using)
@@ -40,13 +39,76 @@ __Portainer Deployer__ is a [Command-line interface](https://en.wikipedia.org/wi
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 
+First steps with Portainer Deployer are about installing and running your first commands. There are multiple installation methods, and they all will be listed in this section, but before you need to create the config directory and the config file.
+
+```shell
+$ mkdir -p /etc/pd-config # Or wherever you want
+$ curl -o /etc/pd-config/default.conf https://raw.githubusercontent.com/Jorgmassih/portainer-deployer/main/portainer_deployer/app.conf.example
+$ chgrp -R $USER /etc/pd-config && chmod -R 774 /etc/pd-config
+```
+
+This step should be executed before __all__ installation methods. If you have already done that, you can skip to the next steps.
+
+> __Note__: Probably you will need to use `sudo` for creating the configuration folder and downloading the config template fil.e
+### Easy installation
+_TODO_
+
+### Advanced installation
+This method requires a modern stable version of [Python 3.8.x](https://docs.python.org/3/whatsnew/changelog.html) or greater already installed.
+
+
+Then, you should be able to downloading the app vía pip
+```shell
+$ python -m pip install --upgrade pip
+$ python -m pip install git+https://github.com/Jorgmassih/portainer-deployer
+$ portainer-deployer --version
+```
+
+If you want to avoid installing the `portainer-deployer` dependencies in your main python environment you can create a virtual environment before installing it:
+
+```shell 
+$ mkdir ~/portainer-deployer-env && cd ~/portainer-deployer-env
+$ python -m venv pd_env && source ./pd_env/bin/activate
+$ python -m pip install --upgrade pip
+$ python -m pip install git+https://github.com/Jorgmassih/portainer-deployer
+$ portainer-deployer --version
+```
+
+For more information abunt virtual environments, please consult the [Official Documentation](https://docs.python.org/3.8/library/venv.html).
+
+
 Since __Portainer Deployer__ is a command line tool, you can invoke the application by running `portainer-deployer` after installation. We know that could be tedious using the entire command to call the application, so, feel free to use an alias. e.g.
 
 ```shell
 $ alias pd="portainer-deployer"
 ```
 
-Before starting using Portainer Deployer, you will need to set some configurations to set up the connection with Portainer API. This can be easily managed by running `portainer-deployer config <config arguments goes here>`. You can go more in deep the [_config section_](#configuring). 
+### Docker installation
+This is the recommended method in case you don't have the required Python version or simply any installation of Python.
+
+If you want to use the tool but without installing it in your environment to avoid overlaping with others applications, or if you are a __Windows__ user, this could be a fancy solution for you.
+
+The idea is create an isolation for executing the applicatión in a recommended stable environment.
+
+To get started with this method make sure you have a [stable version](https://docs.docker.com/release-notes/) of Docker installed by running `docker -v` and run the following snippet:
+
+```shell
+
+
+$ docker pull jorgmassih/portainer-deployer
+$ docker run --rm -v path/to/config/file:/etc/pdcli/app.conf portainer-deployer --version # change --version for your desired command of portainer-deployer
+```
+
+Optionally you could use an `alias` for simplifying the command.
+```shell
+$ alias pd="docker run --rm -v path/to/config/file:/etc/pdcli/app.conf portainer-deployer"
+$ pd --help
+```
+
+> __Binary installation__ will be available soon in next releases. Please be patient.
+
+### Post Installation
+Before starting using Portainer Deployer normally, you will need to set some configurations to set up the connection with Portainer API. This can be easily managed by running `portainer-deployer config <config arguments goes here>`. You can go more in deep the [_config section_](#configuring) later. 
 ### Examples
 
 Get all the Stacks from portainer
@@ -73,65 +135,33 @@ $ portainer-deployer deploy --endpoint 2 --name myStack "version: 3\n services:\
 
 You can consult more information about allowed arguments and subcommands by running `portainer-deployer --help` or `portainer-deployer -h`.
 
-## Installing
-There are many installation methods for this tool and they will be listed down below:
-
-### Python installation
-This method requires a modern stable version of [Python 3](https://docs.python.org/3/whatsnew/changelog.html) already installed.
-
-```shell 
-$ git clone https://github.com/Jorgmassih/portainer-deployer.git
-$ python setup.py install
-$ portainer-deployer --version
-```
-
-If you want to avoid installing the `portainer-deployer` dependencies in your main python environment you can create a virtual environment before installing it:
-
-```shell 
-$ git clone https://github.com/Jorgmassih/portainer-deployer.git
-$ cd portainer-deployer
-$ python -m venv pd_env
-$ source ./pd_env/bin/activate
-$ python setup.py install
-$ portainer-deployer --version
-```
-
-### Docker installation
-This is the recommended method in case you don't have the required Python version or simply any installation of Python.
-
-If you want to use the tool but without installing it in your environment to avoid overlaping with others applications, or if you are a __Windows__ user, this could be a fancy solution for you.
-
-The idea is create an isolation for executing the applicatión in a recommended stable environment.
-
-To get started with this method make sure you have a [stable version](https://docs.docker.com/release-notes/) of Docker installed by running `docker -v` and run the following snippet:
-
-```shell
-$ docker pull jorgmassih/portainer-deployer
-$ docker run --rm -v path/to/config/file:/etc/pdcli/app.conf portainer-deployer --version # change --version for your desired command of portainer-deployer
-```
-
-Optionally you could use an `alias` for simplifying the command.
-```shell
-$ alias pd="docker run --rm -v path/to/config/file:/etc/pdcli/app.conf portainer-deployer"
-$ pd --help
-```
-
-> __Binary installation__ will be available soon in next releases. Please be patient.
 ## 🔧 Configuring <a name = "configuring"></a>
+The first thing you need to set up is the configuration path by running `portainer-deployer config --config-path <YOUR ABSOLUTE PATH TO CONFIG FILE>`.
 
-There's two ways to go ahead with the configuration, the first one is by using the `config` sub-command to set all necessary variables. The another one is by editing directly the _config file_. The first one mentioned is strongly recommended to avoid misconfigurations.
+For example:
+```shell
+$ portainer-deployer config --config-path /etc/pd-config/default.conf 
+Config path updated to: /etc/pd-config/default.conf
+```
 
-### Using `config` sub-command 
+>__Note__: setting the config path is just valid for __all__ installation methods except __Docker installation method__.
+
+### Setting configurations in the config file
+There are two ways to go ahead with the configuration, the first one is by using the `config` sub-command to set all necessary variables. The another one is by editing directly the _config file_. The first one mentioned is strongly recommended to avoid misconfigurations.
+
+### Using the `config` sub-command 
 By Entering `portainer-deployer config --help` in your shell you will receive:
 ```shell
 $ portainer-deployer config --help                                                                                                                           
-usage: portainer-deployer config [-h] [--set SET [SET ...] | --get GET]
+usage: portainer-deployer config [-h] [--set SET [SET ...] | --get GET | --config-path CONFIG_PATH]
 
 optional arguments:
   -h, --help            show this help message and exit
   --set SET [SET ...], -s SET [SET ...]
                         Set a config value specifying the section, key and value. e.g. --set section.url='http://localhost:9000'
   --get GET, -g GET     Get a config value. e.g. --get section.port
+  --config-path CONFIG_PATH, -c CONFIG_PATH
+                        Set Portainer Deployer absulute config path. e.g. --config-path /abusolute/path/to/default.conf
 ```
 > __Notice__ that you have to use the nomenclature of `section.key='new value'`.
 
@@ -162,11 +192,9 @@ $ portainer-deployer config --get portainer.port
 > __In case of__ you try to set a variable not listed beffore, the operation won't take effect.
 
 ### Editing the `config file`
-At the moment of the installation the script will serch if the environmental variable `PORTAINER_DEPLOYER_CONF_PATH` is set with any valid dir path and will create the `app.conf` file there, this means you can set the path of the configuration directory before running `python setup.py install`.
+This method consist in editing the file you set by running `portainer-deployer config --config-path <YOUR PATH>` [at the moment of installation](#configuring), therefore you need the right privileges to access to that file.
 
-In case the path is not set, the installation script will create the configuration directory in the default location `/etc/portainer_deployer`, if an issue occurs in the process the configuration will be created in `~/.portainer_deployer/app.conf`
-
-The `app.conf` file is in [INI](https://en.wikipedia.org/wiki/INI_file) format and looks like:
+The config file is written in [INI](https://en.wikipedia.org/wiki/INI_file) format and looks like:
 ```ini
 # app.conf
 [PORTAINER]
@@ -177,7 +205,7 @@ token = <YOUR PORTAINER TOKEN>
 ssl = yes #It can be yes or not, [T,t]rue or [F,f]alse
 ```
 
-> If you are using the Docker installation method make sure to create a volume with the configuration file inside.
+> __Note__: If you are using the Docker installation method make sure to create a volume with the configuration file inside.
 
 ## 🎈 Usage <a name="usage"></a>
 Portainer Deployer is composed by 3 main sub-commands:
