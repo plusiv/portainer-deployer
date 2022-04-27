@@ -2,8 +2,11 @@
 
 from os import path
 from urllib3.exceptions import InsecureRequestWarning
-from .utils import edit_yml_file, format_stack_info, format_stack_info_generator, generate_random_hash, validate_key_value, validate_key_value_lst, generate_response, validate_yaml 
+
+from portainer_deployer.utils.utils import update_config_dir
+from .utils import *
 from .config import ConfigManager
+from functools import wraps
 import argparse
 import sys
 import requests
@@ -200,21 +203,38 @@ class PortainerDeployer:
         """        
         local_path = path.abspath(path.dirname(__file__))
 
-        # Load .env file
-        env_file = ConfigManager(path.join(local_path, '.env'), default_section='CONFIG')
-        self.PATH_TO_CONFIG = path.join(local_path, env_file.path_to_config)
-
-        # Set API consummer object
-        self.api_consumer = PortainerAPIConsumer(api_config_path=self.PATH_TO_CONFIG)
+        # Load .env file if it exists, otherwise create a dump path
+        env_file = path.join(local_path, '.env')
+        if path.exists(env_file) and path.isfile(env_file):
+            env_file = ConfigManager(path.join(local_path, '.env'), default_section='CONFIG')
+            self.PATH_TO_CONFIG = path.join(local_path, env_file.path_to_config)
+        else:
+            update_config_dir(path_to_file='/this/is/a/dummy/path/please/create/one.conf', verify=False)
 
         self.parser = self.__parser()
         
+        
+    # Create API intantiator decorator
+    def use_api(method):
+        """Decorator to use the API.
+
+        Args:
+            func (function): Function to be decorated.
+
+        Returns:
+            function: Decorated function.
+        """
+        @wraps(method)
+        def wrapper(self, *args, **kwargs):
+            # Set API consummer object when not in config mode
+            self.api_consumer = PortainerAPIConsumer(api_config_path=self.PATH_TO_CONFIG)
+            return method(self, *args, **kwargs)
+        return wrapper
 
     def run(self):
         """Run the main function.
         """        
         # Set arguments
-        self.parser = self.__parser()
         parser_args = self.parser.parse_args(args=None if len(sys.argv) > 2 else [sys.argv[1], '-h'] if len(sys.argv) == 2 else ['-h'])
         
         response = parser_args.func(parser_args)
@@ -235,7 +255,7 @@ class PortainerDeployer:
 
         parser = argparse.ArgumentParser(
             description='Deploy stacks to portainer',
-            prog='portainerDeployer'
+            prog='portainer-deployer'
         )
         
         parser.add_argument('--version', action='version', version='%(prog)s 0.0.1 (Alpha)')
@@ -338,6 +358,13 @@ class PortainerDeployer:
             type=str,
             help='Get a config value. e.g. --get section.port')
 
+
+        mutually_exclusive_config.add_argument('--config-path',
+            '-c',
+            action='store',
+            type=str,
+            help='Set Portainer Deployer absulute config path. e.g. --config-path /abusolute/path/to/default.conf')
+
         parser_config.set_defaults(func=self._config_sub_command)
  
         return parser
@@ -350,7 +377,7 @@ class PortainerDeployer:
             error_message (str): Error message to be printed.
             error_code (int, optional): Error code to be used. Defaults to None.
         """        
-        self.parser.error(error_detail)
+        self.parser.error(f'{error_message}\n{error_detail}')
 
 
     def _config_sub_command(self, args) -> dict:
@@ -359,6 +386,15 @@ class PortainerDeployer:
         Args:
             args (argparse.Namespace): Parsed arguments.
         """
+
+        if args.config_path:
+            update = update_config_dir(args.config_path)
+            if update is str:
+                return generate_response(update)
+            else:
+                msg = f'Config path updated to: {args.config_path}' 
+                print(msg)
+                return generate_response(message=msg, status=True)
 
         config = ConfigManager(self.PATH_TO_CONFIG)
         if args.set:
@@ -384,13 +420,14 @@ class PortainerDeployer:
             
             section,key = splited
             print(config.get_var(key=key, section=section))
-           
+
         else:
             return generate_response('No config action specified')
 
-        return generate_response(f'Config operation {"get" if args.get else "set"} completed successfully', status=True)
+        return generate_response(f'Config operation {"get" if args.get else "set" } completed successfully', status=True)
 
 
+    @use_api
     def _get_sub_command(self , args: argparse.Namespace) -> dict:
         """Get sub-command default function. Excutes get functions according given arguments.
 
@@ -405,7 +442,7 @@ class PortainerDeployer:
 
         return response
         
-
+    @use_api
     def _deploy_sub_command(self, args: argparse.Namespace) -> dict:
         """Deploy sub-command default function. Excutes deploy functions according given arguments.
 
