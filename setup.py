@@ -33,8 +33,9 @@ setup(
         "requests~=2.27.1",
     ],
     tests_require=['unittest'],
-    python_requires=">=3.8.10",
+    python_requires=">=3.8.0",
     packages=find_packages(),
+    include_package_data=True,
     entry_points={
         "console_scripts": [
             f"portainer-deployer={PKG_NAME}.app:main",
