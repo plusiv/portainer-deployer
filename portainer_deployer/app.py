@@ -6,6 +6,8 @@ from urllib3.exceptions import InsecureRequestWarning
 from portainer_deployer.utils.utils import update_config_dir
 from .utils import *
 from .config import ConfigManager
+from . import VERSION, PHASE, PROG
+
 from functools import wraps
 import argparse
 import sys
@@ -231,6 +233,7 @@ class PortainerDeployer:
             return method(self, *args, **kwargs)
         return wrapper
 
+
     def run(self):
         """Run the main function.
         """        
@@ -254,11 +257,11 @@ class PortainerDeployer:
         """
 
         parser = argparse.ArgumentParser(
-            description='Deploy stacks to portainer',
-            prog='portainer-deployer'
+            description='Manage Portainer stacks with CLI.',
+            prog=PROG
         )
         
-        parser.add_argument('--version', action='version', version='%(prog)s 0.0.1 (Alpha)')
+        parser.add_argument('--version', '-v', action='version', version=f'{PROG} {VERSION} ({PHASE})')
         subparsers = parser.add_subparsers(help='Sub-commands for actions', dest='subparser_name')
 
         
@@ -442,6 +445,7 @@ class PortainerDeployer:
 
         return response
         
+
     @use_api
     def _deploy_sub_command(self, args: argparse.Namespace) -> dict:
         """Deploy sub-command default function. Excutes deploy functions according given arguments.
@@ -483,6 +487,7 @@ class PortainerDeployer:
             response = generate_response('No stack argument specified', 'No stack specified. Please pass it as stdin or use the "--path" argument.')
 
         return response
+
 
 def main():
     """Main function."""
