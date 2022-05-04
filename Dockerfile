@@ -7,6 +7,7 @@ FROM python:${PYTHON_VERSION}-alpine${ALPINE_VERSION}
 ENV WORKDIR /app
 ENV PORTAINER_DEPLOYER_CONF_DIR /etc/portainer-deployer
 ENV PORTAINER_DEPLOYER_CONF_FILE app.conf
+ENV PAKG_FOLDER portainer_deployer 
 
 WORKDIR ${WORKDIR}
 
@@ -14,10 +15,11 @@ WORKDIR ${WORKDIR}
 COPY . .
 
 RUN mkdir -p ${PORTAINER_DEPLOYER_CONF_DIR} && \
-    cp -r ${WORKDIR}/app.conf.example ${PORTAINER_DEPLOYER_CONF_DIR}/${PORTAINER_DEPLOYER_CONF_FILE}
+    cp -a ${WORKDIR}/${PAKG_FOLDER}/app.conf.example ${PORTAINER_DEPLOYER_CONF_DIR}/${PORTAINER_DEPLOYER_CONF_FILE}
 
 # Install application and configure it 
 RUN python -m pip install --upgrade pip && \ 
+    python -m pip install -r requirements.txt && \
     python -m pip install . && \
     portainer-deployer config --config-path ${PORTAINER_DEPLOYER_CONF_DIR}/${PORTAINER_DEPLOYER_CONF_FILE}
 
