@@ -191,5 +191,6 @@ pip-selfcheck.json
 # End of https://www.toptal.com/developers/gitignore/api/python,venv,visualstudiocode
 
 .env
+**/dev*
 *[Ee]nv
 miscellaneous

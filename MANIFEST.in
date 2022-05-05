@@ -1,0 +1,1 @@
+include portainer_deployer/*.example portainer_deployer/*.json

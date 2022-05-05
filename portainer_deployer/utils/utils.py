@@ -70,19 +70,22 @@ def recursive_dict(dictionary: dict, keys: list, new_value: Any=None) -> dict:
     if len(keys) == 1:
         dictionary[keys[0]] = new_value
     
+    elif not dictionary:
+        dictionary[keys[0]] = recursive_dict({keys[1:]: {}}, keys[1:], new_value)
+    
     else:
         dictionary[keys[0]] = recursive_dict(dictionary[keys[0]], keys[1:], new_value)
 
     return dictionary
 
 
-def edit_yml_file(path: str, key_group:str, new_value: str) -> str:
+def edit_yml_file(path: str, key_group:str, new_value: Any) -> None:
     """Edit a yaml file base in a chain of keys in dot notation. i.e. 'a.b.c'
 
     Args:
         path (str): Path to the yaml file.
         keys (str): Keys in dot notation. 
-        new_value (str): New value to be set for the last key in the keys.
+        new_value (Any): New value to be set for the last key in the keys.
     """    
     data = {}
     keys = key_group.split('.')
@@ -93,6 +96,8 @@ def edit_yml_file(path: str, key_group:str, new_value: str) -> str:
         
         with open(path, 'w') as f:    
             try:
+                if not data:
+                    data = dict()        
                 recursive_dict(data, keys, new_value)
             
             except KeyError:
@@ -105,7 +110,8 @@ def edit_yml_file(path: str, key_group:str, new_value: str) -> str:
 
 
 def validate_key_value(pair: str) -> bool:
-    """Validate a key=value pair, where key is in dot notation. i.e. a.b.c=value1 d=value2
+    """Validate a key=value pair, where key is in dot notation. i.e. a.b.c=value1 d=value2.
+    This validation is for a list of values as well. i.e. a.b.c='[val1,val2,val3]' d='[1,2,a,c]'.
 
     Args:
         pair (str): A key=value pair.
@@ -113,22 +119,12 @@ def validate_key_value(pair: str) -> bool:
     Returns:
         bool: True if the pair is valid, False otherwise.
     """    
+    # Attempts to validate normal key=value format
     if match(r'^[a-zA-Z0-9_\.]+=[^\[\]]+$', pair):
         return True
 
-    return False
-
-
-def validate_key_value_lst(pair: str) -> bool:
-    """Validate a key=value pair, where value is a list of values. i.e. a.b.c='[a,b,d]' d='[1,2,a,c]'
-
-    Args:
-        pair (str): A key=value pair.
-
-    Returns:
-        bool: True if the pair is valid, False otherwise.
-    """    
-    if match(r'^[a-zA-Z0-9_\.]+=\[[^\]]*]+$', pair):
+    # Attempts to validate list of values format
+    elif match(r'^[a-zA-Z0-9_\.]+=\[[^\]]*]+$', pair):
         return True
 
     return False

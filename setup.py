@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from portainer_deployer import VERSION, PROG
 
 PKG_NAME = 'portainer_deployer'
 
@@ -7,7 +8,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name=PKG_NAME,
-    version="0.0.1",
+    version=VERSION,
     author="Jorge A. Massih",
     author_email="jorgmassih@gmail.com",
     description="A command-line tool to abstract some Portainer's features by using its API.",
@@ -33,11 +34,12 @@ setup(
         "requests~=2.27.1",
     ],
     tests_require=['unittest'],
-    python_requires=">=3.8.10",
+    python_requires=">=3.8.0",
     packages=find_packages(),
+    include_package_data=True,
     entry_points={
         "console_scripts": [
-            f"portainer-deployer={PKG_NAME}.app:main",
+            f"{PROG}={PKG_NAME}.app:main",
         ]
     }
 )

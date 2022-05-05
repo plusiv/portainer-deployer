@@ -6,6 +6,8 @@ from urllib3.exceptions import InsecureRequestWarning
 from portainer_deployer.utils.utils import update_config_dir
 from .utils import *
 from .config import ConfigManager
+from . import VERSION, PHASE, PROG
+from re import split as re_split
 from functools import wraps
 import argparse
 import sys
@@ -29,7 +31,49 @@ class PortainerAPIConsumer:
         self.__portainer_connection_str = f"{self._portainer_config.url}:{self._portainer_config.port}" 
         self.__connection_headers = {'X-API-Key': self._portainer_config.token}
 
+    def error_handler(method):
+        """Decorator to use static error handler.
 
+        Args:
+            func (function): Function to be decorated.
+
+        Returns:
+            function: Decorated function.
+        """
+        @wraps(method)
+        def wrapper(self, *args, **kwargs):
+            try:
+                return method(self, *args, **kwargs) 
+            
+            except requests.exceptions.ConnectionError as e:
+                return generate_response('Connection Error.', str(e), code=500)
+
+            except requests.exceptions.Timeout as e:
+                return generate_response('Connection timeout.', e, code=500)
+
+            except requests.exceptions.TooManyRedirects as e:
+                return generate_response('Too many redirects..', e, code=500)
+            
+            except requests.exceptions.HTTPError as e:
+                if hasattr(e.response, 'json'):
+                    res = generate_response(e.response.json().get('message'), e.response.json().get('details'), code=e.response.status_code)
+                elif hasattr(e.response, 'text'):
+                    res = generate_response(e.response.text, code=e.response.status_code)
+                else:
+                    res = generate_response(str(e), code=500)
+                
+                return res
+            
+            except requests.exceptions.RequestException as e:
+                res = generate_response('Fatal error', str(e), code=e.response.status_code)
+                return res
+            
+            except Exception as e:
+                return generate_response(str(e), code=500)
+
+        return wrapper 
+
+    @error_handler
     def get_stack(self, name:str=None, stack_id:int=None) -> dict:
         """Get a stack from portainer
 
@@ -42,64 +86,54 @@ class PortainerAPIConsumer:
         """
         spacing_str = '{0:<5} {1:<12} {2:<30} {3:30} {4:<30}'
 
-        try:
-            if stack_id:
-                    r = requests.get(
-                        f"{self.__portainer_connection_str}/api/stacks/{stack_id}", 
-                        headers=self.__connection_headers,
-                        verify=self.use_ssl
-                    )
-                    
-                    r.raise_for_status()
-                    data = format_stack_info(r.json())
-
-                    print(spacing_str.format('Id', 'Endpoint Id', 'Name', 'Creation', 'Last Updated'))
-                    print(spacing_str.format(*data))
-
-            elif name:
+        if stack_id:
                 r = requests.get(
-                    f"{self.__portainer_connection_str}/api/stacks", 
+                    f"{self.__portainer_connection_str}/api/stacks/{stack_id}", 
                     headers=self.__connection_headers,
                     verify=self.use_ssl
                 )
                 
                 r.raise_for_status()
-                data = format_stack_info_generator(r.json())
+                data = format_stack_info(r.json())
 
                 print(spacing_str.format('Id', 'Endpoint Id', 'Name', 'Creation', 'Last Updated'))
-                for stack in data:
-                    if stack[2] == name:
-                        print(spacing_str.format(*stack))
-                        break 
-                else:
-                    raise Exception(f"Stack {name} not found in the database.")
+                print(spacing_str.format(*data))
 
-            else:
-                r = requests.get(
-                    f"{self.__portainer_connection_str}/api/stacks", 
-                    headers=self.__connection_headers,
-                    verify=self.use_ssl
-                )
-                
-                r.raise_for_status()
-                data = format_stack_info_generator(r.json())
+        elif name:
+            r = requests.get(
+                f"{self.__portainer_connection_str}/api/stacks", 
+                headers=self.__connection_headers,
+                verify=self.use_ssl
+            )
+            
+            r.raise_for_status()
+            data = format_stack_info_generator(r.json())
 
-                print(spacing_str.format('Id', 'Endpoint Id', 'Name', 'Creation', 'Last Updated'))
-                for stack in data:
+            print(spacing_str.format('Id', 'Endpoint Id', 'Name', 'Creation', 'Last Updated'))
+            for stack in data:
+                if stack[2] == name:
                     print(spacing_str.format(*stack))
+                    break 
+            else:
+                raise Exception(f"Stack {name} not found in the database.")
 
-            return generate_response('Stack(s) pulled successfully', status=True, code=r.status_code)
+        else:
+            r = requests.get(
+                f"{self.__portainer_connection_str}/api/stacks", 
+                headers=self.__connection_headers,
+                verify=self.use_ssl
+            )
+            
+            r.raise_for_status()
+            data = format_stack_info_generator(r.json())
 
-        except requests.HTTPError as e:
-            return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code)
-        
-        except requests.exceptions.RequestException as e:
-            return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code) 
-        
-        except Exception as e:
-            return generate_response(str(e), code=500)
+            print(spacing_str.format('Id', 'Endpoint Id', 'Name', 'Creation', 'Last Updated'))
+            for stack in data:
+                print(spacing_str.format(*stack))
 
+        return generate_response('Stack(s) pulled successfully', status=True, code=r.status_code)
 
+    @error_handler
     def post_stack_from_str(self, stack: str, endpoint_id: int, name: str = None) -> dict:
         """Post a stack from str.
 
@@ -111,39 +145,32 @@ class PortainerAPIConsumer:
         Returns:
             dict: Dictionary with the status and detail of the operation.
         """
-        try:
-            if not validate_yaml(data=stack):
-                raise Exception('Invalid stack', 'Stack is not in a valid yaml format.')
+        if not validate_yaml(data=stack):
+            raise Exception('Invalid stack', 'Stack is not in a valid yaml format.')
 
-            name = name if name else generate_random_hash()
+        name = name if name else generate_random_hash()
 
-            params = {
-                "type": 2,
-                "endpointId": endpoint_id,
-                "method": "string"
-            }
+        params = {
+            "type": 2,
+            "endpointId": endpoint_id,
+            "method": "string"
+        }
 
-            r = requests.post(
-                f"{self.__portainer_connection_str}/api/stacks", 
-                headers=self.__connection_headers,
-                params=params,
-                json={
-                    "name": name,
-                    "stackFileContent": stack},
-                verify=self.use_ssl
-            )
-            
-            r.raise_for_status()
-            print(f"Stack {name} created successfully.")
-            return generate_response('Stack(s) pushed successfully', status=True, code=r.status_code)
-
-        except requests.exceptions.RequestException as e:
-            return generate_response(e.response.json()['message'], e.response.json()['details'], code=e.response.status_code) 
+        r = requests.post(
+            f"{self.__portainer_connection_str}/api/stacks", 
+            headers=self.__connection_headers,
+            params=params,
+            json={
+                "name": name,
+                "stackFileContent": stack},
+            verify=self.use_ssl
+        )
         
-        except Exception as e:
-            return generate_response(str(e), code=500)        
+        r.raise_for_status()
+        print(f"Stack {name} created successfully.")
+        return generate_response('Stack(s) pushed successfully', status=True, code=r.status_code)
 
-
+    @error_handler
     def post_stack_from_file(self, path: str, endpoint_id: int, name: str = None) -> dict:
         """Post a stack from a file.
 
@@ -155,45 +182,31 @@ class PortainerAPIConsumer:
         Returns:
             dict: Dictionary with the status and detail of the operation.
         """        
-        try:
-            name = name if name else generate_random_hash()
-            
-            if not validate_yaml(path=path):
-                raise Exception('Invalid stack', 'Stack is not in a valid yaml format.')
-            
-            # Open file
-            with open(path, 'r') as f:
-                params = {
-                    "type": 2,
-                    "endpointId": endpoint_id,
-                    "method": "file"
-                }
-                
-                response = requests.post(self.__portainer_connection_str + '/api/stacks',
-                    data={ "Name": name}, 
-                    params=params,
-                    files={'file': f},
-                    headers=self.__connection_headers, 
-                    verify=self.use_ssl
-                )
-                response.raise_for_status()
-
-                print(f"Stack {name} created successfully.")
-                return generate_response(f'Stack {name} from {path} posted successfully under the endpoint {endpoint_id}.', status=True, code=response.status_code)
-                
-        except requests.exceptions.RequestException as error:
-            return generate_response(error.response.json()['message'], error.response.json()['details'], code=error.response.status_code)
+        name = name if name else generate_random_hash()
         
-        except FileNotFoundError as error:
-            return generate_response(f'File {path} not found. {error}', code=None)
+        if not validate_yaml(path=path):
+            raise Exception('Invalid stack', 'Stack is not in a valid yaml format.')
         
-        except Exception as error:
-            return generate_response(str(error), None)
+        # Open file
+        with open(path, 'r') as f:
+            params = {
+                "type": 2,
+                "endpointId": endpoint_id,
+                "method": "file"
+            }
+            
+            response = requests.post(self.__portainer_connection_str + '/api/stacks',
+                data={ "Name": name}, 
+                params=params,
+                files={'file': f},
+                headers=self.__connection_headers, 
+                verify=self.use_ssl
+            )
+            response.raise_for_status()
 
+            print(f"Stack {name} created successfully.")
+            return generate_response(f'Stack {name} from {path} posted successfully under the endpoint {endpoint_id}.', status=True, code=response.status_code)
 
-    def update_stack(self, stack_id: str, stack: str):
-        #TODO: Implement
-        pass
 
 class PortainerDeployer:
     """Manage Portainer's Stacks usgin its API throught Command Line.
@@ -231,6 +244,7 @@ class PortainerDeployer:
             return method(self, *args, **kwargs)
         return wrapper
 
+
     def run(self):
         """Run the main function.
         """        
@@ -254,11 +268,11 @@ class PortainerDeployer:
         """
 
         parser = argparse.ArgumentParser(
-            description='Deploy stacks to portainer',
-            prog='portainer-deployer'
+            description='Manage Portainer stacks with CLI.',
+            prog=PROG
         )
         
-        parser.add_argument('--version', action='version', version='%(prog)s 0.0.1 (Alpha)')
+        parser.add_argument('--version', '-v', action='version', version=f'{PROG} {VERSION} ({PHASE})')
         subparsers = parser.add_subparsers(help='Sub-commands for actions', dest='subparser_name')
 
         
@@ -324,7 +338,8 @@ class PortainerDeployer:
             action='extend', 
             type=str,
             nargs='+',
-            help="Modify the stack file by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2, value3]'"
+            help="Modify the stack file by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2, value3]'",
+            default=[]
         )
 
 
@@ -442,6 +457,7 @@ class PortainerDeployer:
 
         return response
         
+
     @use_api
     def _deploy_sub_command(self, args: argparse.Namespace) -> dict:
         """Deploy sub-command default function. Excutes deploy functions according given arguments.
@@ -460,22 +476,16 @@ class PortainerDeployer:
             response = self.api_consumer.post_stack_from_str(stack=args.stack, name=args.name, endpoint_id=args.endpoint)
         
         elif args.path:
-            if args.update_keys:
-                for pair in args.update_keys:
-                    if validate_key_value(pair=pair):
-                        keys, new_value = pair.split('=')
-                        edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
-                        if edited:
-                            return generate_response(edited)
-                    
-                    elif validate_key_value_lst(pair=pair):
-                        keys, new_value = pair.split('=')
-                        edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value[1:-1].split(','))
-                        if edited:
-                            return generate_response(edited)
-
-                    else:
-                        return generate_response(f'Invalid key=value pair in --update-keys argument: {pair}')
+            for pair in args.update_keys:
+                if validate_key_value(pair=pair):
+                    keys, new_value = pair.split('=', 1)
+                    new_value = re_split(', |,', new_value[1:-1]) if new_value.startswith('[') else new_value
+                    edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
+                    if edited:
+                        return generate_response(edited)
+                
+                else:
+                    return generate_response(f'Invalid key=value pair in --update-keys argument: {pair}')
 
             response = self.api_consumer.post_stack_from_file(path=args.path, name=args.name, endpoint_id=args.endpoint)
 
@@ -483,6 +493,7 @@ class PortainerDeployer:
             response = generate_response('No stack argument specified', 'No stack specified. Please pass it as stdin or use the "--path" argument.')
 
         return response
+
 
 def main():
     """Main function."""
