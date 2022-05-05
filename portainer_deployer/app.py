@@ -7,7 +7,7 @@ from portainer_deployer.utils.utils import update_config_dir
 from .utils import *
 from .config import ConfigManager
 from . import VERSION, PHASE, PROG
-
+from re import split as re_split
 from functools import wraps
 import argparse
 import sys
@@ -338,7 +338,8 @@ class PortainerDeployer:
             action='extend', 
             type=str,
             nargs='+',
-            help="Modify the stack file by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2, value3]'"
+            help="Modify the stack file by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2, value3]'",
+            default=[]
         )
 
 
@@ -475,22 +476,21 @@ class PortainerDeployer:
             response = self.api_consumer.post_stack_from_str(stack=args.stack, name=args.name, endpoint_id=args.endpoint)
         
         elif args.path:
-            if args.update_keys:
-                for pair in args.update_keys:
-                    if validate_key_value(pair=pair):
-                        keys, new_value = pair.split('=')
-                        edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
-                        if edited:
-                            return generate_response(edited)
-                    
-                    elif validate_key_value_lst(pair=pair):
-                        keys, new_value = pair.split('=')
-                        edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value[1:-1].split(','))
-                        if edited:
-                            return generate_response(edited)
+            for pair in args.update_keys:
+                if validate_key_value(pair=pair):
+                    keys, new_value = pair.split('=', 1)
+                    edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
+                    if edited:
+                        return generate_response(edited)
+                
+                elif validate_key_value_lst(pair=pair):
+                    keys, new_value = pair.split('=', 1)
+                    edited = edit_yml_file(path=args.path, key_group=keys, new_value=re_split(', |,', new_value[1:-1]))
+                    if edited:
+                        return generate_response(edited)
 
-                    else:
-                        return generate_response(f'Invalid key=value pair in --update-keys argument: {pair}')
+                else:
+                    return generate_response(f'Invalid key=value pair in --update-keys argument: {pair}')
 
             response = self.api_consumer.post_stack_from_file(path=args.path, name=args.name, endpoint_id=args.endpoint)
 

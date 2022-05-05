@@ -70,6 +70,9 @@ def recursive_dict(dictionary: dict, keys: list, new_value: Any=None) -> dict:
     if len(keys) == 1:
         dictionary[keys[0]] = new_value
     
+    elif not dictionary:
+        dictionary[keys[0]] = recursive_dict({keys[1:]: {}}, keys[1:], new_value)
+    
     else:
         dictionary[keys[0]] = recursive_dict(dictionary[keys[0]], keys[1:], new_value)
 
@@ -93,6 +96,8 @@ def edit_yml_file(path: str, key_group:str, new_value: str) -> str:
         
         with open(path, 'w') as f:    
             try:
+                if not data:
+                    data = dict()        
                 recursive_dict(data, keys, new_value)
             
             except KeyError:
