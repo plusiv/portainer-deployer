@@ -34,18 +34,22 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Get version number 
-        id: format_script
+        id: version_number
         uses: notiz-dev/github-action-json-property@release
         with: 
           path: './portainer_deployer/ver.json'
           prop_path: 'version'
       
       - name: Get phase 
-        id: format_script
+        id: version_phase
         uses: notiz-dev/github-action-json-property@release
         with: 
           path: './portainer_deployer/ver.json'
           prop_path: 'phase'
+
+      - run: |
+          echo ${{steps.version_number.outputs.prop}} 
+          echo ${{steps.version_phase.outputs.prop}} 
 
       - name: Build and push
         uses: docker/build-push-action@v2
