@@ -479,16 +479,11 @@ class PortainerDeployer:
             for pair in args.update_keys:
                 if validate_key_value(pair=pair):
                     keys, new_value = pair.split('=', 1)
+                    new_value = re_split(', |,', new_value[1:-1]) if new_value.startswith('[') else new_value
                     edited = edit_yml_file(path=args.path, key_group=keys, new_value=new_value)
                     if edited:
                         return generate_response(edited)
                 
-                elif validate_key_value_lst(pair=pair):
-                    keys, new_value = pair.split('=', 1)
-                    edited = edit_yml_file(path=args.path, key_group=keys, new_value=re_split(', |,', new_value[1:-1]))
-                    if edited:
-                        return generate_response(edited)
-
                 else:
                     return generate_response(f'Invalid key=value pair in --update-keys argument: {pair}')
 
