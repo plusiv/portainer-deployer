@@ -74,7 +74,8 @@ jobs:
         if: ${{ matrix.python-version }} == ${{ env.STABLE_PYTHON_VER }}
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:dev         
+          tags: | 
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:dev         
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{needs.versioning.outputs.version}}-${{needs.versioning.outputs.phase}}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.event.pull_request.head.sha }}
