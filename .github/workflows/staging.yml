@@ -75,8 +75,11 @@ jobs:
         with:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:dev         
-
-      - name: Build and push
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{needs.versioning.outputs.version}}-${{needs.versioning.outputs.phase}}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.event.pull_request.head.sha }}
+            
+      - name: Build and push with matrix
         uses: docker/build-push-action@v2
         with:
           push: true
