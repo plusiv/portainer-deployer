@@ -14,14 +14,47 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # Create a job for getting tags and lowercase version info
+  versioning:
+    name: "Gets versioning info to export"
+    runs-on: ubuntu-20.04
+    outputs:
+      version: ${{ steps.version_number.outputs.prop }} 
+      phase: ${{ steps.version_phase_lower.outputs.lowercase }} 
+
+    steps:
+      - name: Download source code
+        uses: actions/checkout@v3
+    
+      - name: Get version number 
+        id: version_number
+        uses: notiz-dev/github-action-json-property@release
+        with: 
+          path: './portainer_deployer/ver.json'
+          prop_path: 'version'
+      
+      - name: Get version phase (Capitalized)
+        id: version_phase_cap
+        uses: notiz-dev/github-action-json-property@release
+        with: 
+          path: './portainer_deployer/ver.json'
+          prop_path: 'phase'
+
+      - name: Get version phase (Lowercase)
+        id: version_phase_lower
+        uses: ASzc/change-string-case-action@v2
+        with: 
+          string: ${{steps.version_phase_cap.outputs.prop}}
+
+
   build-docker:
     name: Builds Docker Image for beta release
     runs-on: ubuntu-20.04
     strategy:
           matrix:
             python-version: [ '3.8', '3.9', '3.10' ]
+    needs: [ versioning ]
     steps:
-      - uses: actions/checkout@v3
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       
@@ -33,29 +66,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
-      - name: Get version number 
-        id: version_number
-        uses: notiz-dev/github-action-json-property@release
-        with: 
-          path: './portainer_deployer/ver.json'
-          prop_path: 'version'
-      
-      - name: Get phase 
-        id: version_phase
-        uses: notiz-dev/github-action-json-property@release
-        with: 
-          path: './portainer_deployer/ver.json'
-          prop_path: 'phase'
-
-      - run: |
-          echo ${{steps.version_number.outputs.prop}} 
-          echo ${{steps.version_phase.outputs.prop}} 
 
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{steps.version_number.outputs.prop}}-${{steps.version_phase.outputs.prop}}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{needs.versioning.outputs.version}}-${{needs.versioning.outputs.phase}}
     
