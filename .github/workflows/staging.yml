@@ -39,7 +39,7 @@ jobs:
         id: version_phase_cap
         uses: notiz-dev/github-action-json-property@release
         with: 
-          path: './portainer_deployer/ver.json'
+          path: './portainer_deployer/info.json'
           prop_path: 'phase'
 
       - name: Get version phase (Lowercase)
