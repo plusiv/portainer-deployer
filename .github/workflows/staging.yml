@@ -32,7 +32,7 @@ jobs:
         id: version_number
         uses: notiz-dev/github-action-json-property@release
         with: 
-          path: './portainer_deployer/ver.json'
+          path: './portainer_deployer/info.json'
           prop_path: 'version'
       
       - name: Get version phase (Capitalized)
