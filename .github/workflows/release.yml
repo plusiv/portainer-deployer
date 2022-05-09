@@ -28,6 +28,7 @@ permissions:
 
 jobs:
   upload-to-pypi:
+    name: Upload release to Pypi RepositorBuilds Docker Image for beta releasey
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
