@@ -30,7 +30,7 @@
 - [Acknowledgments](#acknowledgement)
 - [Contributing](#contributing)
 
-## :warning:Important Notice:warning:
+## ⚠️Important Notice⚠️
 This is not an official [Portainer](https://www.portainer.io/about) software, it is just and Open Source tool to make an abstraction of Portainer's API.
 
 ## 🧐 About <a name = "about"></a>
