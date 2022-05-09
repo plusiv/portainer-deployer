@@ -76,9 +76,8 @@ jobs:
           push: true
           tags: | 
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:dev         
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{needs.versioning.outputs.version}}-${{needs.versioning.outputs.phase}}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.event.pull_request.head.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:dev${{needs.versioning.outputs.version}}-${{ needs.versioning.outputs.phase }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:dev-${{ github.sha }}
             
       - name: Build and push with matrix
         uses: docker/build-push-action@v2
@@ -86,7 +85,6 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:dev-python${{ matrix.python-version }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{needs.versioning.outputs.version}}-${{needs.versioning.outputs.phase}}-python${{ matrix.python-version }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}-python${{ matrix.python-version }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.event.pull_request.head.sha }}-python${{ matrix.python-version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:dev${{needs.versioning.outputs.version}}-python${{ matrix.python-version }}-${{ needs.versioning.outputs.phase }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:dev-${{ github.sha }}-python${{ matrix.python-version }}
     

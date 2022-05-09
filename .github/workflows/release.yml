@@ -27,7 +27,7 @@ permissions:
   contents: read
 
 jobs:
-  upload-to-pypi:
+  build-and-pypi:
     name: Upload release to Pypi RepositorBuilds Docker Image for beta releasey
     runs-on: ubuntu-latest
     steps:
@@ -42,6 +42,7 @@ jobs:
         pip install build
     - name: Build package
       run: python -m build
+    - run: echo "Project built successfully"
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
       with:
@@ -111,8 +112,8 @@ jobs:
           push: true
           tags: | 
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.versioning.outputs.version }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.event.pull_request.head.sha }}
             
       - name: Build and push with matrix
         uses: docker/build-push-action@v2
@@ -120,6 +121,6 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:python${{ matrix.python-version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.versioning.outputs.version }}-python${{ matrix.python-version }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}-python${{ matrix.python-version }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.event.pull_request.head.sha }}-python${{ matrix.python-version }}
     
