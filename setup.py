@@ -28,7 +28,7 @@ setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: Unix",
-        "Development Status :: Alpha",
+        "Development Status :: 3 - Alpha",
         "Environment :: Console",
         "Intended Audience :: System Administrators",
         "Natural Language :: English",
