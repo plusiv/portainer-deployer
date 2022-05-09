@@ -84,6 +84,8 @@ jobs:
 
   build-docker:
     name: Builds Docker Image for beta release
+    env:
+      IMAGE_NAME: ${{ github.event.repository.name }}
     runs-on: ubuntu-20.04
     strategy:
           matrix:
@@ -108,7 +110,7 @@ jobs:
         with:
           push: true
           tags: | 
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.event.pull_request.head.sha }}
             
