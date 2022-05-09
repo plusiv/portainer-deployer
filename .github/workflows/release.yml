@@ -91,7 +91,7 @@ jobs:
     strategy:
           matrix:
             python-version: [ '3.8', '3.9', '3.10' ]
-    needs: [ versioning, buid-and-pypi ]
+    needs: [ versioning, build-and-pypi ]
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
