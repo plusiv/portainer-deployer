@@ -18,7 +18,7 @@ env:
 jobs:
   # Create a job for getting tags and lowercase version info
   versioning:
-    name: "Gets versioning info to export"
+    name: Get versioning info to export
     runs-on: ubuntu-20.04
     outputs:
       version: ${{ steps.version_number.outputs.prop }} 
