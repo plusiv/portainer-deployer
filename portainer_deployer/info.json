@@ -1,0 +1,7 @@
+{
+    "info": {
+        "prog": "portainer-deployer"
+    },
+    "version": "0.0.2",
+    "phase": "Alpha"
+}

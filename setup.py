@@ -1,14 +1,20 @@
 from setuptools import setup, find_packages
-from portainer_deployer import VERSION, PROG
+from json import load
+from os import path
 
 PKG_NAME = 'portainer_deployer'
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+info = load(open(path.join(path.abspath(path.dirname(__file__)), f'{PKG_NAME}/info.json')))
+version = info['version']
+prog = info['info']['prog']
+
+
 setup(
     name=PKG_NAME,
-    version=VERSION,
+    version=version,
     author="Jorge A. Massih",
     author_email="jorgmassih@gmail.com",
     description="A command-line tool to abstract some Portainer's features by using its API.",
@@ -39,7 +45,7 @@ setup(
     include_package_data=True,
     entry_points={
         "console_scripts": [
-            f"{PROG}={PKG_NAME}.app:main",
+            f"{prog}={PKG_NAME}.app:main",
         ]
     }
 )
