@@ -2,6 +2,7 @@ name: App Staging
 
 on:
   pull_request:
+    types: [closed]
     branches:
       - "main"
     paths-ignore:
@@ -18,6 +19,7 @@ env:
 jobs:
   # Create a job for getting tags and lowercase version info
   versioning:
+    if: github.event.pull_request.merged
     name: Get versioning info to export
     runs-on: ubuntu-20.04
     outputs:
@@ -51,6 +53,7 @@ jobs:
 
   build-docker:
     name: Builds Docker Image for beta release
+    if: github.event.pull_request.merged
     runs-on: ubuntu-20.04
     strategy:
           matrix:
