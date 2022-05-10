@@ -7,7 +7,11 @@ from .utils import \
     generate_response, \
     validate_yaml, \
     update_config_dir, \
-    recursive_dict
+    recursive_dict, \
+    CustomFormatter, \
+    StdoutFormatter, \
+    FormatterDispatcher, \
+    logging
 
 __all__ = [
         'edit_yml_file', 
@@ -17,5 +21,9 @@ __all__ = [
         'validate_key_value', 
         'generate_response', 
         'validate_yaml',
-        'update_config_dir'
+        'update_config_dir',
+        'CustomFormatter',
+        'StdoutFormatter',
+        'FormatterDispatcher',
+        'logging'
     ]
