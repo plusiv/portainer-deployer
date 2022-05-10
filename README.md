@@ -50,17 +50,14 @@ $ chgrp -R $USER /etc/pd-config && chmod -R 774 /etc/pd-config
 This step should be executed before __all__ installation methods. If you have already done that, you can skip to the next steps.
 
 > __Note__: Probably you will need to use `sudo` for creating the configuration folder and downloading the config template fil.e
-### Easy installation
-_TODO_
-
-### Advanced installation
+### Installation
 This method requires a modern stable version of [Python 3.8.x](https://docs.python.org/3/whatsnew/changelog.html) or greater already installed.
 
 
 Then, you should be able to downloading the app vía pip
 ```shell
 $ python -m pip install --upgrade pip
-$ python -m pip install git+https://github.com/Jorgmassih/portainer-deployer
+$ python -m pip install portainer-deployer
 $ portainer-deployer --version
 ```
 
@@ -70,7 +67,7 @@ If you want to avoid installing the `portainer-deployer` dependencies in your ma
 $ mkdir ~/portainer-deployer-env && cd ~/portainer-deployer-env
 $ python -m venv pd_env && source ./pd_env/bin/activate
 $ python -m pip install --upgrade pip
-$ python -m pip install git+https://github.com/Jorgmassih/portainer-deployer
+$ python -m pip install portainer-deployer
 $ portainer-deployer --version
 ```
 
