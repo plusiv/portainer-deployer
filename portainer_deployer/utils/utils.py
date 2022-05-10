@@ -272,9 +272,7 @@ class FormatterDispatcher:
         formatter = self._formatters.get(record.name)
         return formatter.format(record)
 
-# create console handler with a higher log level
 custom_handler = logging.StreamHandler()
-#custom_handler.setLevel(logging.INFO)
 
 formatters = {
     'stdout': StdoutFormatter(),

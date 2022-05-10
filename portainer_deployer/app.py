@@ -204,7 +204,7 @@ class PortainerAPIConsumer:
             )
             response.raise_for_status()
 
-            logging.getLogger('stdout').info(f"Stack {name} created successfully.")
+            logging.getLogger('stdout').info(f"Stack {name} created successfully!!!")
             return generate_response(f'Stack {name} from {path} posted successfully under the endpoint {endpoint_id}.', status=True, code=response.status_code)
 
     @error_handler
