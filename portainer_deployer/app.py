@@ -207,6 +207,48 @@ class PortainerAPIConsumer:
             print(f"Stack {name} created successfully.")
             return generate_response(f'Stack {name} from {path} posted successfully under the endpoint {endpoint_id}.', status=True, code=response.status_code)
 
+    @error_handler
+    def delete_stack_by_id(self, stack_id: int, endpoint_id) -> dict:
+        params = {
+            "endpointId": endpoint_id,
+            "external": False
+        }
+        r = requests.delete(
+            f"{self.__portainer_connection_str}/api/stacks/{stack_id}", 
+            headers=self.__connection_headers,
+            verify=self.use_ssl,
+            params=params
+        )
+        
+        r.raise_for_status()
+        print(f"Deleted successfully!!!")
+        return generate_response('Stack(s) deleted successfully', status=True, code=r.status_code)
+
+
+    @error_handler
+    def delete_stack_by_name(self, name: str, endpoint_id: int) -> dict:
+
+        r = requests.get(
+            f"{self.__portainer_connection_str}/api/stacks", 
+            headers=self.__connection_headers,
+            verify=self.use_ssl,
+        )
+        
+        r.raise_for_status()
+        data = format_stack_info_generator(r.json())
+        
+        stack_id = None
+
+        for stack in data:
+            if stack[2] == name:
+                stack_id = stack[0]
+                break 
+        else:
+            raise Exception(f"Stack {name} not found in the database.")
+
+        print(f"Deleting stack {name}...")
+        return self.delete_stack_by_id(stack_id, endpoint_id)
+
 
 class PortainerDeployer:
     """Manage Portainer's Stacks usgin its API throught Command Line.
@@ -342,6 +384,11 @@ class PortainerDeployer:
             default=[]
         )
 
+        parser_deploy.add_argument('--redeploy', 
+            '-R',
+            action='store_true', 
+            help="Re-deply in case of stacks exists.",
+        )
 
         parser_deploy.add_argument('--endpoint', 
             '-e',
@@ -468,6 +515,15 @@ class PortainerDeployer:
         
         if args.stack and args.path:
             print('Warning!!! Stack stdin and Path are both set. By default the stdin is used, so that, provided path will be ignored.\n')
+
+        if args.redeploy:
+            print('Warning!!! Redeploy is set. It will try to delete the old stack if exists.')
+
+            delete_respo = self.api_consumer.delete_stack_by_name(name=args.name, endpoint_id=args.endpoint)
+            if not delete_respo['status']:
+                print(f'WARNING!! Failed to delete stack: {args.name}. {delete_respo["message"]}')
+            else:
+                print(f"Recreating stack {args.name}...")
 
         if args.stack:
             if args.update_keys:
