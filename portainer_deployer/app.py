@@ -167,7 +167,7 @@ class PortainerAPIConsumer:
         )
         
         r.raise_for_status()
-        print(f"Stack {name} created successfully.")
+        logging.getLogger('stdout').info(f"Stack {name} created successfully!!!")
         return generate_response('Stack(s) pushed successfully', status=True, code=r.status_code)
 
     @error_handler
@@ -204,7 +204,7 @@ class PortainerAPIConsumer:
             )
             response.raise_for_status()
 
-            print(f"Stack {name} created successfully.")
+            logging.getLogger('stdout').info(f"Stack {name} created successfully!!!")
             return generate_response(f'Stack {name} from {path} posted successfully under the endpoint {endpoint_id}.', status=True, code=response.status_code)
 
     @error_handler
@@ -221,7 +221,7 @@ class PortainerAPIConsumer:
         )
         
         r.raise_for_status()
-        print(f"Deleted successfully!!!")
+        logging.getLogger('stdout').info("Deleted successfully!!!")
         return generate_response('Stack(s) deleted successfully', status=True, code=r.status_code)
 
 
@@ -246,7 +246,7 @@ class PortainerAPIConsumer:
         else:
             raise Exception(f"Stack {name} not found in the database.")
 
-        print(f"Deleting stack {name}...")
+        logging.getLogger('stdout').debug(f"Deleting stack {name}...")
         return self.delete_stack_by_id(stack_id, endpoint_id)
 
 
@@ -455,7 +455,7 @@ class PortainerDeployer:
                 return generate_response(update)
             else:
                 msg = f'Config path updated to: {args.config_path}' 
-                print(msg)
+                logging.getLogger('stdout').info(msg)
                 return generate_response(message=msg, status=True)
 
         config = ConfigManager(self.PATH_TO_CONFIG)
@@ -472,7 +472,7 @@ class PortainerDeployer:
                 section, key = section_key  
                 config.set_var(key=key, new_value=value, section=section)
 
-            print(f'Config updated for: {args.set}')
+            logging.getLogger('stdout').info(f'Config updated for: {args.set}')
 
         elif args.get:
             pair = args.get
@@ -514,16 +514,16 @@ class PortainerDeployer:
         """
         
         if args.stack and args.path:
-            print('Warning!!! Stack stdin and Path are both set. By default the stdin is used, so that, provided path will be ignored.\n')
+            logging.getLogger('stdout').warning('Stack stdin and Path are both set. By default the stdin is used, so that, provided path will be ignored.\n')
 
         if args.redeploy:
-            print('Warning!!! Redeploy is set. It will try to delete the old stack if exists.')
+            logging.getLogger('stdout').warning('Redeploy is set. It will try to delete the old stack if exists.')
 
-            delete_respo = self.api_consumer.delete_stack_by_name(name=args.name, endpoint_id=args.endpoint)
-            if not delete_respo['status']:
-                print(f'WARNING!! Failed to delete stack: {args.name}. {delete_respo["message"]}')
+            delete_resp = self.api_consumer.delete_stack_by_name(name=args.name, endpoint_id=args.endpoint)
+            if not delete_resp['status']:
+                logging.getLogger('stdout').warning(f'Failed to delete stack: {args.name}. {delete_resp["message"]}')
             else:
-                print(f"Recreating stack {args.name}...")
+                logging.getLogger('stdout').debug(f"Recreating stack {args.name}...")
 
         if args.stack:
             if args.update_keys:

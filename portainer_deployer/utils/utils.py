@@ -4,6 +4,8 @@ from yaml import Loader, load, dump, YAMLError
 from re import match
 from typing import Any
 from os import path, access, W_OK, R_OK
+import logging
+
 
 def format_stack_info_generator(stacks: list):
     """Format the list of stacks from Portainer and return a generator with it.
@@ -212,3 +214,75 @@ def update_config_dir(path_to_file: str, verify: bool = True):
         return f"Permission denied to {path_to_file}, make sure it is writable and readable by App User."
     except Exception as e:
         return f"Error: {e}"
+
+class CustomFormatter(logging.Formatter):
+    """Custom formatter to format the log messages."""
+    
+    @property
+    def formats(self):
+        grey = "\x1b[38;20m"
+        yellow = "\x1b[33;20m"
+        red = "\x1b[31;20m"
+        bold_red = "\x1b[31;1m"
+        reset = "\x1b[0m"
+        format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+
+        FORMATS = {
+            logging.DEBUG: grey + format + reset,
+            logging.INFO: grey + format + reset,
+            logging.WARNING: yellow + format + reset,
+            logging.ERROR: red + format + reset,
+            logging.CRITICAL: bold_red + format + reset
+        }
+
+        return FORMATS
+
+    def format(self, record) -> logging.Formatter:
+        log_fmt = self.formats.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+
+class StdoutFormatter(CustomFormatter):
+    """Custom formatter to format the log messages to print in ."""
+    
+    @property
+    def formats(self):
+        grey = "\x1b[38;20m"
+        yellow = "\x1b[33;20m"
+        red = "\x1b[31;20m"
+        bold_red = "\x1b[31;1m"
+        reset = "\x1b[0m"
+        format = "%(levelname)s - %(message)s"
+
+        FORMATS = {
+            logging.DEBUG: grey + format + reset,
+            logging.INFO: grey + format + reset,
+            logging.WARNING: yellow + format + reset,
+            logging.ERROR: red + format + reset,
+            logging.CRITICAL: bold_red + format + reset
+        }
+
+        return FORMATS
+
+class FormatterDispatcher:
+    def __init__(self, formatters: dict):
+        self._formatters = formatters
+
+    def format(self, record) -> logging.Formatter:
+        formatter = self._formatters.get(record.name)
+        return formatter.format(record)
+
+custom_handler = logging.StreamHandler()
+
+formatters = {
+    'stdout': StdoutFormatter(),
+    'file': CustomFormatter(),
+    'dev': CustomFormatter()
+}
+
+custom_handler.setFormatter(FormatterDispatcher(formatters))
+
+for logger_name in formatters:
+    logging.getLogger(logger_name).setLevel(logging.DEBUG)
+
+logging.getLogger().addHandler(custom_handler)
