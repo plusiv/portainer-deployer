@@ -51,10 +51,9 @@ This step should be executed before __all__ installation methods. If you have al
 
 > __Note__: Probably you will need to use `sudo` for creating the configuration folder and downloading the config template fil.e
 ### Installation
-This method requires a modern stable version of [Python 3.8.x](https://docs.python.org/3/whatsnew/changelog.html) or greater already installed.
+[Python 3.8.x](https://docs.python.org/3/whatsnew/changelog.html) or greater is required for this project run correctly.
 
-
-Then, you should be able to downloading the app vía pip
+You should be able to download it vía pip
 ```shell
 $ python -m pip install --upgrade pip
 $ python -m pip install portainer-deployer
@@ -71,7 +70,7 @@ $ python -m pip install portainer-deployer
 $ portainer-deployer --version
 ```
 
-For more information abunt virtual environments, please consult the [Official Documentation](https://docs.python.org/3.8/library/venv.html).
+> For more information abunt virtual environments, please consult the [Official Documentation](https://docs.python.org/3.8/library/venv.html).
 
 
 Since __Portainer Deployer__ is a command line tool, you can invoke the application by running `portainer-deployer` after installation. We know that could be tedious using the entire command to call the application, so, feel free to use an alias. e.g.
@@ -269,4 +268,4 @@ optional arguments:
 
 ## 🤝 Contributing <a name = "contributing"></a>
 I'm open to contributions!
-If you are insterested in collaboring, you can contact me via the info of [my bio](https://github.com/Jorgmassih).
+If you are insterested in collaboring, you can reach out to me via the info on [my bio](https://github.com/Jorgmassih).

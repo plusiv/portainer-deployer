@@ -6,7 +6,7 @@ from urllib3.exceptions import InsecureRequestWarning
 from portainer_deployer.utils.utils import update_config_dir
 from .utils import *
 from .config import ConfigManager
-from . import VERSION, PHASE, PROG
+from . import VERSION, PHASE, PROG, DEFAULT_HELP_MESSAGE
 from re import split as re_split
 from functools import wraps
 import argparse
@@ -309,21 +309,28 @@ class PortainerDeployer:
             parser (argparse.ArgumentParser): Main parser.
         """
 
+
         parser = argparse.ArgumentParser(
             description='Manage Portainer stacks with CLI.',
-            prog=PROG
+            prog=PROG,
+            add_help=False
         )
         
-        parser.add_argument('--version', '-v', action='version', version=f'{PROG} {VERSION} ({PHASE})')
+        parser.add_argument('--version', '-v', action='version', version=f'{PROG} {VERSION} ({PHASE})', help="Show program's version and exit.")
         subparsers = parser.add_subparsers(help='Sub-commands for actions', dest='subparser_name')
-
+        
+        parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+                    help=DEFAULT_HELP_MESSAGE)
         
         # ========================== Sub-commands for get ==========================
-        parser_get = subparsers.add_parser('get', 
-            help='Help for action Get', 
-            description='Get a stack info from portainer.'
+        parser_get = subparsers.add_parser('get',
+            description='Get a stack info from portainer.',
+            add_help=False
         )
         
+        parser_get.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+                    help=DEFAULT_HELP_MESSAGE)
+
         # Mutually exclusive arguments for --name and --id
         mutually_exclusive_name_id = parser_get.add_mutually_exclusive_group()
 
@@ -351,7 +358,13 @@ class PortainerDeployer:
 
 
         # ========================== Sub-commands for deploy ==========================
-        parser_deploy = subparsers.add_parser('deploy', help='Help for action Deploy')
+        parser_deploy = subparsers.add_parser(
+            'deploy',
+            description='Deploy a stack from a local file or stdin.',
+            add_help=False)
+
+        parser_deploy.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+                    help=DEFAULT_HELP_MESSAGE)
 
         parser_deploy.add_argument('stack',
             action='store',
@@ -403,8 +416,14 @@ class PortainerDeployer:
 
 
         # ========================== Sub-commands for config ==========================
-        parser_config = subparsers.add_parser('config', help='Help for Config sub-command')
+        parser_config = subparsers.add_parser(
+            'config', 
+            description='Configure Portainer CLI.',
+            add_help=False)
         
+        parser_config.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+            help=DEFAULT_HELP_MESSAGE)
+
         mutually_exclusive_config = parser_config.add_mutually_exclusive_group() 
 
         mutually_exclusive_config.add_argument('--set',
