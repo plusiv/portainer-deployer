@@ -268,4 +268,4 @@ optional arguments:
 
 ## 🤝 Contributing <a name = "contributing"></a>
 I'm open to contributions!
-If you are insterested in collaboring, you can contact me via the info of [my bio](https://github.com/Jorgmassih).
+If you are insterested in collaboring, you can reach out to me via the info on [my bio](https://github.com/Jorgmassih).
