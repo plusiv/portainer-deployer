@@ -70,11 +70,17 @@ def recursive_dict(dictionary: dict, keys: list, new_value: Any=None) -> dict:
         dict: _description_
     """    
     if len(keys) == 1:
-        truly_boolean = {
-            'true': True,
-            'false': False
-        }
-        dictionary[keys[0]] = truly_boolean.get(new_value, new_value)
+        if type(new_value) == str:
+            truly_boolean = {
+                'true': True,
+                'True': True,
+                'false': False,
+                'False': False
+            }
+            dictionary[keys[0]] = truly_boolean.get(new_value, new_value)
+
+        else:
+            dictionary[keys[0]] = new_value
     
     elif not dictionary:
         dictionary[keys[0]] = recursive_dict({keys[1]: {}}, keys[1:], new_value)
