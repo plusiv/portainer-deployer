@@ -11,7 +11,8 @@ from .utils import \
     CustomFormatter, \
     StdoutFormatter, \
     FormatterDispatcher, \
-    logging
+    logging, \
+    request_confirmation
 
 __all__ = [
         'edit_yml_file', 
@@ -25,5 +26,6 @@ __all__ = [
         'CustomFormatter',
         'StdoutFormatter',
         'FormatterDispatcher',
-        'logging'
+        'logging',
+        'request_confirmation'
     ]

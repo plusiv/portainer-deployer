@@ -225,6 +225,17 @@ def update_config_dir(path_to_file: str, verify: bool = True):
     except Exception as e:
         return f"Error: {e}"
 
+def request_confirmation(msg: str) -> bool:
+    while True:
+        print(msg)
+        choice = input(f"Confirm with [Y/n]: ").lower()
+        if match(r'^(?:y(?:es)?)$', choice):
+            return True
+        if match(r'^(?:n(?:o)?)$', choice):
+            return False
+
+
+# ==================== Logger Formatter ====================
 class CustomFormatter(logging.Formatter):
     """Custom formatter to format the log messages."""
     
