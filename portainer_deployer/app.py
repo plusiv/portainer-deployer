@@ -372,7 +372,7 @@ class PortainerDeployer:
         
         # ========================== Sub-command get ==========================
         parser_get = subparsers.add_parser('get',
-            description='Get a stack info from portainer.',
+            description='Get stack info from Portainer.',
             add_help=False
         )
         
@@ -408,7 +408,7 @@ class PortainerDeployer:
         # ========================== Sub-command deploy ==========================
         parser_deploy = subparsers.add_parser(
             'deploy',
-            description='Deploy a stack from a local file or stdin.',
+            description='Deploy stacks from a local file or stdin.',
             add_help=False)
 
         parser_deploy.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
@@ -417,7 +417,7 @@ class PortainerDeployer:
         parser_deploy.add_argument('stack',
             action='store',
             nargs='?',
-            help="Docker Compose string for the stack",
+            help="Docker Compose string for the stack.",
             default=(None if sys.stdin.isatty() else ''.join(sys.stdin.readlines())))
 
         
@@ -425,14 +425,14 @@ class PortainerDeployer:
             '-p',
             action='store',
             type=str,
-            help='The path to Docker Compose file for the stack. An alternative to pass the stack as string',
+            help='The path to Docker Compose file for the stack. An alternative is to pass the stack as a string.',
             required=False,
             default=None)
 
         parser_deploy.add_argument('--name',
             '-n',
             action='store',
-            help="Name of the stack to look for",
+            help="Name of the stack to look for.",
             type=str
         )
         
@@ -453,7 +453,7 @@ class PortainerDeployer:
 
         parser_deploy.add_argument('-y',
             action='store_true',
-            help='Do not ask for confirmation before redeploying the stack.',
+            help='Accept redeploy and do not ask for confirmation before redeploying the stack.',
         )
 
         parser_deploy.add_argument('--endpoint', 
@@ -461,16 +461,15 @@ class PortainerDeployer:
             required=True if len(sys.argv) > 2 else False,
             action='store',
             type=int,
-            help='Endponint Id to deploy the stack'
+            help='Endpoint Id to deploy the stack.'
         )
-
 
         parser_deploy.set_defaults(func=self._deploy_sub_command)
 
 
         # ========================== Sub-command remove ==========================
         parser_remove = subparsers.add_parser('remove',
-            description='Remove a stack from portainer.',
+            description='Remove a stack from Portainer.',
             add_help=False
         )
         
@@ -498,13 +497,13 @@ class PortainerDeployer:
             required=True if len(sys.argv) > 2 else False,
             action='store',
             type=int,
-            help='Endponint Id to deploy the stack'
+            help='Endpoint Id from the stack to remove.'
         )
 
 
         parser_remove.add_argument('-y',
             action='store_true',
-            help='Do not ask for confirmation before removing the stack.',
+            help='Accept removal action and do not ask for confirmation.',
         )
 
         parser_remove.set_defaults(func=self._remove_sub_command)
