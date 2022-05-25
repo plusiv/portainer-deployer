@@ -89,8 +89,6 @@ The idea is create an isolation for executing the applicatión in a recommended 
 To get started with this method make sure you have a [stable version](https://docs.docker.com/release-notes/) of Docker installed by running `docker -v` and run the following snippet:
 
 ```shell
-
-
 $ docker pull jorgmassih/portainer-deployer
 $ docker run --rm -v path/to/config/file:/etc/pdcli/app.conf portainer-deployer --version # change --version for your desired command of portainer-deployer
 ```
@@ -155,7 +153,7 @@ optional arguments:
   -h, --help            show this help message and exit
   --set SET [SET ...], -s SET [SET ...]
                         Set a config value specifying the section, key and value. e.g. --set section.url='http://localhost:9000'
-  --get GET, -g GET     Get a config value. e.g. --get section.port
+  --get GET, -g GET     Get a config value. e.g. --get section.url
   --config-path CONFIG_PATH, -c CONFIG_PATH
                         Set Portainer Deployer absulute config path. e.g. --config-path /abusolute/path/to/default.conf
 ```
@@ -168,22 +166,21 @@ The following table list the available sections:
 
 
 Also, here is a list of all keys of the variables that can be set and get:
-| Variable Key | Choices/Defaults | Description                                     |
-|----------|------------------|-------------------------------------------------|
-| url      |                  | Portainer URL to connect. e.g. https://10.0.0.3 |
-| port     |                  | Port to reach out Portainer host.               |
-| username |                  | Username to connect to the API.                 |
-| token    |                  | Token given by Portainer to connect to the API. |
-| ssl      | __yes__, no     | Use SSL for secure connections.                 |
+| Key        | Choices/Defaults | Description                                     |
+|------------|------------------|-------------------------------------------------|
+| url        |                  | Portainer URL to connect. e.g. https://10.0.0.3 |
+| username   |                  | Username to connect to the API.                 |
+| token      |                  | Token given by Portainer to connect to the API. |
+| verify_ssl |   __yes__, no    | In case of "no" skip ssl verification.          |
 ### Examples
 Set Portainer `url`
 ```shell
-$ portainer-deployer config --set portainer.url='https://localhost'
+$ portainer-deployer config --set portainer.url='https://localhost:9443'
 ```
 
-Get Portainer `port`
+Get Portainer `username`
 ```shell
-$ portainer-deployer config --get portainer.port
+$ portainer-deployer config --get portainer.username
 ```
 > __In case of__ you try to set a variable not listed beffore, the operation won't take effect.
 
@@ -195,21 +192,21 @@ The config file is written in [INI](https://en.wikipedia.org/wiki/INI_file) form
 # app.conf
 [PORTAINER]
 url = https://your-portainer.host.lab
-port = 9443
 username = <YOUR PORTAINER USERNAME>
 token = <YOUR PORTAINER TOKEN>
-ssl = yes #It can be yes or not, [T,t]rue or [F,f]alse
+verify_ssl = yes #It can be yes or not, [T,t]rue or [F,f]alse
 ```
 
 > __Note__: If you are using the Docker installation method make sure to create a volume with the configuration file inside.
 
 ## 🎈 Usage <a name="usage"></a>
-Portainer Deployer is composed by 3 main sub-commands:
+Portainer Deployer is composed by 4 main sub-commands:
 - `get`
 - `deploy`
+- `remove`
 - `config` _(explained in the past section)_
 
-In this reading we are going to focus in `get` and `deploy` sub-commands.
+In this reading we are going to focus in `get`, `deploy` and `remove` sub-commands.
 
 ### The `get` sub-command
 By runnnig `portainer-deployer get` you will be able to retrive stacks information from Portainer by _name_ or _id_, you can retreive information of all stacks by setting the `--all` argument.
@@ -223,7 +220,7 @@ usage: portainer-deployer get [-h] [--id ID | --name NAME | --all]
 Get a stack info from portainer.
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help            Show help message and exit.
   --id ID               Id of the stack to look for
   --name NAME, -n NAME  Name of the stack to look for
   --all, -a             Gets all stacks
@@ -240,16 +237,36 @@ positional arguments:
   stack                 Docker Compose string for the stack
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help            Show help message and exit.
   --path PATH, -p PATH  The path to Docker Compose file for the stack. An alternative to pass the stack as string
   --name NAME, -n NAME  Name of the stack to look for
   --update-keys UPDATE_KEYS [UPDATE_KEYS ...], -u UPDATE_KEYS [UPDATE_KEYS ...]
-                        Modify the stack file by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2,
-                        value3]'
+                        Modify the stack file by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2, value3]'
+  --redeploy, -R        Re-deply in case of stacks exists.
+  -y                    Do not ask for confirmation before redeploying the stack.
   --endpoint ENDPOINT, -e ENDPOINT
                         Endponint Id to deploy the stack
 ```
+You can redeploy a stack by ussing the `--redeploy` flag. This is usefull to update an image rebuild. This feature requires a confirmation, and can be accepted automatically and skiped with the `-y` flag.
 
+### The `remove` sub-command
+This sub-command allows you to remove a stack from Portainer by passing its `id` or `name` and the `endpoint` as well.
+
+```shell
+$ portainer-deployer remove --help
+usage: portainer-deployer remove [-h] [--id ID | --name NAME] [--endpoint ENDPOINT] [-y]
+
+Remove a stack from portainer.
+
+optional arguments:
+  -h, --help            Show help message and exit.
+  --id ID               Id of the stack remove
+  --name NAME, -n NAME  Name of the stack to remove
+  --endpoint ENDPOINT, -e ENDPOINT
+                        Endponint Id to deploy the stack
+  -y                    Do not ask for confirmation before removing the stack.
+```
+This sub-command also has a confirmation step, and can be accepted automatically and skiped with the `-y` flag.
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 
