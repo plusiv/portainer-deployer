@@ -22,13 +22,13 @@ class PortainerAPIConsumer:
         self._portainer_config = ConfigManager(PATH_TO_CONFIG, default_section='PORTAINER')
 
         # Set non-ssl connection
-        self.use_ssl = self._portainer_config.get_boolean_var('SSL')
+        self.use_ssl = self._portainer_config.get_boolean_var('VERIFY_SSL')
         if not self.use_ssl and self._portainer_config.url.split('://')[0] == 'https':
             # Suppress only the single warning from urllib3 needed.
             requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
         # Set portainer connection parameters
-        self.__portainer_connection_str = f"{self._portainer_config.url}:{self._portainer_config.port}" 
+        self.__portainer_connection_str = self._portainer_config.url
         self.__connection_headers = {'X-API-Key': self._portainer_config.token}
 
     def error_handler(method):

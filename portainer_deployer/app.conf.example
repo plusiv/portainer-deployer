@@ -1,6 +1,5 @@
 [PORTAINER]
 url=
-port=
 username=
 token=
-ssl=yes
+verify_ssl=yes
