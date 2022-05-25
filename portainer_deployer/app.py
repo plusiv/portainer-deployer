@@ -451,6 +451,11 @@ class PortainerDeployer:
             help="Re-deply in case of stacks exists.",
         )
 
+        parser_deploy.add_argument('-y',
+            action='store_true',
+            help='Do not ask for confirmation before redeploying the stack.',
+        )
+
         parser_deploy.add_argument('--endpoint', 
             '-e',
             required=True if len(sys.argv) > 2 else False,
@@ -499,7 +504,7 @@ class PortainerDeployer:
 
         parser_remove.add_argument('-y',
             action='store_true',
-            help='Do not ask for confirmation before removing the stack',
+            help='Do not ask for confirmation before removing the stack.',
         )
 
         parser_remove.set_defaults(func=self._remove_sub_command)
@@ -626,13 +631,21 @@ class PortainerDeployer:
             logging.getLogger('stdout').warning('Stack stdin and Path are both set. By default the stdin is used, so that, provided path will be ignored.\n')
 
         if args.redeploy:
-            logging.getLogger('stdout').warning('Redeploy is set. It will try to delete the old stack if exists.')
+            confirmation = True
+            if not args.y:
+                confirmation = request_confirmation('Are you sure you want to redeploy this Stack? It will be replaced by the new one.')
 
-            delete_resp = self.api_consumer.delete_stack_by_name(name=args.name, endpoint_id=args.endpoint)
-            if not delete_resp['status']:
-                logging.getLogger('stdout').warning(f'Failed to delete stack: {args.name}. {delete_resp["message"]}')
+            if confirmation:
+                logging.getLogger('stdout').info('Redeploy is set. It will try to delete the old stack if exists.')
+
+                delete_resp = self.api_consumer.delete_stack_by_name(name=args.name, endpoint_id=args.endpoint)
+                if not delete_resp['status']:
+                    logging.getLogger('stdout').debug(f'Failed to delete stack: {args.name}. {delete_resp["message"]}')
+                else:
+                    logging.getLogger('stdout').debug(f"Recreating stack {args.name}...")
+            
             else:
-                logging.getLogger('stdout').debug(f"Recreating stack {args.name}...")
+                return generate_response('Redeploy was canceled', status=False)
 
         if args.stack:
             if args.update_keys:
