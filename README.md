@@ -150,10 +150,10 @@ $ portainer-deployer config --help
 usage: portainer-deployer config [-h] [--set SET [SET ...] | --get GET | --config-path CONFIG_PATH]
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help            Show help message and exit.
   --set SET [SET ...], -s SET [SET ...]
                         Set a config value specifying the section, key and value. e.g. --set section.url='http://localhost:9000'
-  --get GET, -g GET     Get a config value. e.g. --get section.url
+  --get GET, -g GET     Get a config value. e.g. --get section.port
   --config-path CONFIG_PATH, -c CONFIG_PATH
                         Set Portainer Deployer absulute config path. e.g. --config-path /abusolute/path/to/default.conf
 ```
