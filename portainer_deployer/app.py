@@ -22,13 +22,13 @@ class PortainerAPIConsumer:
         self._portainer_config = ConfigManager(PATH_TO_CONFIG, default_section='PORTAINER')
 
         # Set non-ssl connection
-        self.use_ssl = self._portainer_config.get_boolean_var('SSL')
+        self.use_ssl = self._portainer_config.get_boolean_var('VERIFY_SSL')
         if not self.use_ssl and self._portainer_config.url.split('://')[0] == 'https':
             # Suppress only the single warning from urllib3 needed.
             requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
         # Set portainer connection parameters
-        self.__portainer_connection_str = f"{self._portainer_config.url}:{self._portainer_config.port}" 
+        self.__portainer_connection_str = self._portainer_config.url
         self.__connection_headers = {'X-API-Key': self._portainer_config.token}
 
     def error_handler(method):
@@ -224,7 +224,6 @@ class PortainerAPIConsumer:
         logging.getLogger('stdout').info("Deleted successfully!!!")
         return generate_response('Stack(s) deleted successfully', status=True, code=r.status_code)
 
-
     @error_handler
     def delete_stack_by_name(self, name: str, endpoint_id: int) -> dict:
 
@@ -249,6 +248,55 @@ class PortainerAPIConsumer:
         logging.getLogger('stdout').debug(f"Deleting stack {name}...")
         return self.delete_stack_by_id(stack_id, endpoint_id)
 
+    @error_handler
+    def delete_stack(self, endpoint_id: int, stack_name: str=None, stack_id: int=None) -> dict:
+        """Delete a stack.
+
+        Args:
+            endpoint_id (int): Id of the endpoint in Portainer.
+            stack_name (str): Name of the stack in Portainer.
+            stack_id (int): Id of the stack in Portainer.
+
+        Returns:
+            dict: Dictionary with the status and detail of the operation.
+        """
+        if not stack_name and not stack_id:
+            raise Exception('Invalid stack', 'Stack name or id is required.')
+
+        # Takes stack_name only if stack_id is not provided  
+        if stack_name and not stack_id:
+            r = requests.get(
+                f"{self.__portainer_connection_str}/api/stacks", 
+                headers=self.__connection_headers,
+                verify=self.use_ssl,
+            )
+            r.raise_for_status()
+            data = format_stack_info_generator(r.json())
+            
+            stack_id = None
+
+            for stack in data:
+                if stack[2] == stack_name:
+                    stack_id = stack[0]
+                    break 
+            else:
+                raise Exception(f"Stack {stack_name} not found in the database.")
+
+        # Takes stack_id and request portainer to delete the stack
+        params = {
+            "endpointId": endpoint_id,
+            "external": False
+        }
+        r = requests.delete(
+            f"{self.__portainer_connection_str}/api/stacks/{stack_id}", 
+            headers=self.__connection_headers,
+            verify=self.use_ssl,
+            params=params
+        )
+        
+        r.raise_for_status()
+        logging.getLogger('stdout').info("Deleted successfully!!!")
+        return generate_response('Stack(s) deleted successfully', status=True, code=r.status_code)
 
 class PortainerDeployer:
     """Manage Portainer's Stacks usgin its API throught Command Line.
@@ -322,7 +370,7 @@ class PortainerDeployer:
         parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
                     help=DEFAULT_HELP_MESSAGE)
         
-        # ========================== Sub-commands for get ==========================
+        # ========================== Sub-command get ==========================
         parser_get = subparsers.add_parser('get',
             description='Get a stack info from portainer.',
             add_help=False
@@ -357,7 +405,7 @@ class PortainerDeployer:
         parser_get.set_defaults(func=self._get_sub_command)
 
 
-        # ========================== Sub-commands for deploy ==========================
+        # ========================== Sub-command deploy ==========================
         parser_deploy = subparsers.add_parser(
             'deploy',
             description='Deploy a stack from a local file or stdin.',
@@ -403,6 +451,11 @@ class PortainerDeployer:
             help="Re-deply in case of stacks exists.",
         )
 
+        parser_deploy.add_argument('-y',
+            action='store_true',
+            help='Do not ask for confirmation before redeploying the stack.',
+        )
+
         parser_deploy.add_argument('--endpoint', 
             '-e',
             required=True if len(sys.argv) > 2 else False,
@@ -415,7 +468,49 @@ class PortainerDeployer:
         parser_deploy.set_defaults(func=self._deploy_sub_command)
 
 
-        # ========================== Sub-commands for config ==========================
+        # ========================== Sub-command remove ==========================
+        parser_remove = subparsers.add_parser('remove',
+            description='Remove a stack from portainer.',
+            add_help=False
+        )
+        
+        parser_remove.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+                    help=DEFAULT_HELP_MESSAGE)
+
+        # Mutually exclusive arguments for --name and --id
+        mutually_exclusive_name_id_rm = parser_remove.add_mutually_exclusive_group()
+
+        mutually_exclusive_name_id_rm.add_argument('--id',
+            action='store',
+            help="Id of the stack remove",          
+            type=int
+        )
+
+        mutually_exclusive_name_id_rm.add_argument('--name',
+            '-n',
+            action='store',
+            help="Name of the stack to remove",   
+            type=str
+        )
+
+        parser_remove.add_argument('--endpoint', 
+            '-e',
+            required=True if len(sys.argv) > 2 else False,
+            action='store',
+            type=int,
+            help='Endponint Id to deploy the stack'
+        )
+
+
+        parser_remove.add_argument('-y',
+            action='store_true',
+            help='Do not ask for confirmation before removing the stack.',
+        )
+
+        parser_remove.set_defaults(func=self._remove_sub_command)
+
+
+        # ========================== Sub-command config ==========================
         parser_config = subparsers.add_parser(
             'config', 
             description='Configure Portainer CLI.',
@@ -536,13 +631,21 @@ class PortainerDeployer:
             logging.getLogger('stdout').warning('Stack stdin and Path are both set. By default the stdin is used, so that, provided path will be ignored.\n')
 
         if args.redeploy:
-            logging.getLogger('stdout').warning('Redeploy is set. It will try to delete the old stack if exists.')
+            confirmation = True
+            if not args.y:
+                confirmation = request_confirmation('Are you sure you want to redeploy this Stack? It will be replaced by the new one.')
 
-            delete_resp = self.api_consumer.delete_stack_by_name(name=args.name, endpoint_id=args.endpoint)
-            if not delete_resp['status']:
-                logging.getLogger('stdout').warning(f'Failed to delete stack: {args.name}. {delete_resp["message"]}')
+            if confirmation:
+                logging.getLogger('stdout').info('Redeploy is set. It will try to delete the old stack if exists.')
+
+                delete_resp = self.api_consumer.delete_stack_by_name(name=args.name, endpoint_id=args.endpoint)
+                if not delete_resp['status']:
+                    logging.getLogger('stdout').debug(f'Failed to delete stack: {args.name}. {delete_resp["message"]}')
+                else:
+                    logging.getLogger('stdout').debug(f"Recreating stack {args.name}...")
+            
             else:
-                logging.getLogger('stdout').debug(f"Recreating stack {args.name}...")
+                return generate_response('Redeploy was canceled', status=False)
 
         if args.stack:
             if args.update_keys:
@@ -568,6 +671,25 @@ class PortainerDeployer:
             response = generate_response('No stack argument specified', 'No stack specified. Please pass it as stdin or use the "--path" argument.')
 
         return response
+
+
+    @use_api
+    def _remove_sub_command(self , args: argparse.Namespace) -> dict:
+        """Remove sub-command default function. Excutes removal functions according given arguments.
+
+        Args:
+            args (argparse.Namespace): Parsed arguments. 
+        """        
+        confirmation = True
+        if not args.y:
+            confirmation = request_confirmation('Are you sure you want to remove this Stack?')
+
+        if confirmation:
+            response = self.api_consumer.delete_stack(stack_name=args.name, stack_id=args.id, endpoint_id=args.endpoint)
+            return response
+        else:
+            return generate_response('Stack removal cancelled', status=False)
+
 
 
 def main():
