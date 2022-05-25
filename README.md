@@ -31,7 +31,7 @@
 - [Contributing](#contributing)
 
 ## ⚠️Important Notice⚠️
-This is not an official [Portainer](https://www.portainer.io/about) software, it is just and Open Source tool to make an abstraction of Portainer's API.
+This is not an official [Portainer](https://www.portainer.io/about) software, it is just an Open Source tool to make an abstraction of Portainer's API.
 
 ## 🧐 About <a name = "about"></a>
 
@@ -39,7 +39,7 @@ __Portainer Deployer__ is a [Command-line interface](https://en.wikipedia.org/wi
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 
-First steps with Portainer Deployer are about installing and running your first commands. There are multiple installation methods, and they all will be listed in this section, but before you need to create the config directory and the config file.
+The first steps with Portainer Deployer are about installing and running your first commands. There are multiple installation methods, and they all will be listed in this section, but before you need to create the config directory and the config file.
 
 ```shell
 $ mkdir -p /etc/pd-config # Or wherever you want
@@ -49,9 +49,9 @@ $ chgrp -R $USER /etc/pd-config && chmod -R 774 /etc/pd-config
 
 This step should be executed before __all__ installation methods. If you have already done that, you can skip to the next steps.
 
-> __Note__: Probably you will need to use `sudo` for creating the configuration folder and downloading the config template fil.e
+> __Note__: Probably you will need to use `sudo` for creating the configuration folder and downloading the config template file
 ### Installation
-[Python 3.8.x](https://docs.python.org/3/whatsnew/changelog.html) or greater is required for this project run correctly.
+[Python 3.8.x](https://docs.python.org/3/whatsnew/changelog.html) or greater is required for this project to run correctly.
 
 You should be able to download it vía pip
 ```shell
@@ -70,10 +70,10 @@ $ python -m pip install portainer-deployer
 $ portainer-deployer --version
 ```
 
-> For more information abunt virtual environments, please consult the [Official Documentation](https://docs.python.org/3.8/library/venv.html).
+> For more information about virtual environments, please consult the [Official Documentation](https://docs.python.org/3.8/library/venv.html).
 
 
-Since __Portainer Deployer__ is a command line tool, you can invoke the application by running `portainer-deployer` after installation. We know that could be tedious using the entire command to call the application, so, feel free to use an alias. e.g.
+Since __Portainer Deployer__ is a command-line tool, you can invoke the application by running `portainer-deployer` after installation. We know that could be tedious to use the entire command to call the application, so, feel free to use an alias. e.g.
 
 ```shell
 $ alias pd="portainer-deployer"
@@ -82,15 +82,13 @@ $ alias pd="portainer-deployer"
 ### Docker installation
 This is the recommended method in case you don't have the required Python version or simply any installation of Python.
 
-If you want to use the tool but without installing it in your environment to avoid overlaping with others applications, or if you are a __Windows__ user, this could be a fancy solution for you.
+If you want to use the tool but without installing it in your environment to avoid overlapping with other applications, or if you are a __Windows__ user, this could be a fancy solution for you.
 
-The idea is create an isolation for executing the applicatión in a recommended stable environment.
+The idea is to create isolation for executing the applicatión in a recommended stable environment.
 
 To get started with this method make sure you have a [stable version](https://docs.docker.com/release-notes/) of Docker installed by running `docker -v` and run the following snippet:
 
 ```shell
-
-
 $ docker pull jorgmassih/portainer-deployer
 $ docker run --rm -v path/to/config/file:/etc/pdcli/app.conf portainer-deployer --version # change --version for your desired command of portainer-deployer
 ```
@@ -101,7 +99,7 @@ $ alias pd="docker run --rm -v path/to/config/file:/etc/pdcli/app.conf portainer
 $ pd --help
 ```
 
-> __Binary installation__ will be available soon in next releases. Please be patient.
+> __Binary installation__ will be available soon in the next releases. Please be patient.
 
 ### Post Installation
 Before starting using Portainer Deployer normally, you will need to set some configurations to set up the connection with Portainer API. This can be easily managed by running `portainer-deployer config <config arguments goes here>`. You can go more in deep the [_config section_](#configuring) later. 
@@ -143,7 +141,7 @@ Config path updated to: /etc/pd-config/default.conf
 >__Note__: setting the config path is just valid for __all__ installation methods except __Docker installation method__.
 
 ### Setting configurations in the config file
-There are two ways to go ahead with the configuration, the first one is by using the `config` sub-command to set all necessary variables. The another one is by editing directly the _config file_. The first one mentioned is strongly recommended to avoid misconfigurations.
+There are two ways to go ahead with the configuration, the first one is by using the `config` sub-command to set all necessary variables. Another one is by editing directly the _config file_. The first one mentioned is strongly recommended to avoid misconfigurations.
 
 ### Using the `config` sub-command 
 By Entering `portainer-deployer config --help` in your shell you will receive:
@@ -152,7 +150,7 @@ $ portainer-deployer config --help
 usage: portainer-deployer config [-h] [--set SET [SET ...] | --get GET | --config-path CONFIG_PATH]
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help            Show help message and exit.
   --set SET [SET ...], -s SET [SET ...]
                         Set a config value specifying the section, key and value. e.g. --set section.url='http://localhost:9000'
   --get GET, -g GET     Get a config value. e.g. --get section.port
@@ -167,52 +165,51 @@ The following table list the available sections:
 | PORTAINER | All concerning configuration to Portainer API connection. |
 
 
-Also, here is a list of all keys of the variables that can be set and get:
-| Variable Key | Choices/Defaults | Description                                     |
-|----------|------------------|-------------------------------------------------|
-| url      |                  | Portainer URL to connect. e.g. https://10.0.0.3 |
-| port     |                  | Port to reach out Portainer host.               |
-| username |                  | Username to connect to the API.                 |
-| token    |                  | Token given by Portainer to connect to the API. |
-| ssl      | __yes__, no     | Use SSL for secure connections.                 |
+Also, here is a list of all keys of the variables that can be set and gotten:
+| Key        | Choices/Defaults | Description                                     |
+|------------|------------------|-------------------------------------------------|
+| url        |                  | Portainer URL to connect. e.g. https://10.0.0.3 |
+| username   |                  | Username to connect to the API.                 |
+| token      |                  | Token given by Portainer to connect to the API. |
+| verify_ssl |   __yes__, no    | In case of "no" skip ssl verification.          |
 ### Examples
 Set Portainer `url`
 ```shell
-$ portainer-deployer config --set portainer.url='https://localhost'
+$ portainer-deployer config --set portainer.url='https://localhost:9443'
 ```
 
-Get Portainer `port`
+Get Portainer `username`
 ```shell
-$ portainer-deployer config --get portainer.port
+$ portainer-deployer config --get portainer.username
 ```
-> __In case of__ you try to set a variable not listed beffore, the operation won't take effect.
+> __In the case of__ you try to set a variable not listed before, the operation won't take effect.
 
 ### Editing the `config file`
-This method consist in editing the file you set by running `portainer-deployer config --config-path <YOUR PATH>` [at the moment of installation](#configuring), therefore you need the right privileges to access to that file.
+This method consists in editing the file you set by running `portainer-deployer config --config-path <YOUR PATH>` [at the moment of installation](#configuring), therefore you need the right privileges to access that file.
 
-The config file is written in [INI](https://en.wikipedia.org/wiki/INI_file) format and looks like:
+The config file is written in [INI](https://en.wikipedia.org/wiki/INI_file) format and looks like this:
 ```ini
 # app.conf
 [PORTAINER]
 url = https://your-portainer.host.lab
-port = 9443
 username = <YOUR PORTAINER USERNAME>
 token = <YOUR PORTAINER TOKEN>
-ssl = yes #It can be yes or not, [T,t]rue or [F,f]alse
+verify_ssl = yes #It can be yes or not, [T,t]rue or [F,f]alse
 ```
 
 > __Note__: If you are using the Docker installation method make sure to create a volume with the configuration file inside.
 
 ## 🎈 Usage <a name="usage"></a>
-Portainer Deployer is composed by 3 main sub-commands:
+Portainer Deployer is composed of 4 main sub-commands:
 - `get`
 - `deploy`
+- `remove`
 - `config` _(explained in the past section)_
 
-In this reading we are going to focus in `get` and `deploy` sub-commands.
+In this reading, we are going to focus on `get`, `deploy` and `remove` sub-commands.
 
 ### The `get` sub-command
-By runnnig `portainer-deployer get` you will be able to retrive stacks information from Portainer by _name_ or _id_, you can retreive information of all stacks by setting the `--all` argument.
+By running `portainer-deployer get` you will be able to retrieve stacks information from Portainer by _name_ or _id_, you can retreive information of all stacks by setting the `--all` argument.
 
 The command `portainer-deployer get -h` will result in:
 
@@ -220,17 +217,17 @@ The command `portainer-deployer get -h` will result in:
 $ portainer-deployer get --help                                                                        
 usage: portainer-deployer get [-h] [--id ID | --name NAME | --all]
 
-Get a stack info from portainer.
+Get stack info from Portainer.
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help            Show help message and exit.
   --id ID               Id of the stack to look for
   --name NAME, -n NAME  Name of the stack to look for
   --all, -a             Gets all stacks
 ```
 
 ### The `deploy` sub-command
-This one allows to post stacks and run them in Portainer, it can be done by passing the string as `stdin` or by passing the `path` to the `yml` file.
+This one allows to post stacks and run them in Portainer, it can be done by passing the string as `stdin` or passing the `path` to the `yml` file.
 
 ```shell
 $ portainer-deployer deploy --help
@@ -240,16 +237,36 @@ positional arguments:
   stack                 Docker Compose string for the stack
 
 optional arguments:
-  -h, --help            show this help message and exit
-  --path PATH, -p PATH  The path to Docker Compose file for the stack. An alternative to pass the stack as string
-  --name NAME, -n NAME  Name of the stack to look for
+  -h, --help            Show help message and exit.
+  --path PATH, -p PATH  The path to Docker Compose file for the stack. An alternative is to pass the stack as a string.
+  --name NAME, -n NAME  Name of the stack to look for.
   --update-keys UPDATE_KEYS [UPDATE_KEYS ...], -u UPDATE_KEYS [UPDATE_KEYS ...]
-                        Modify the stack file by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2,
-                        value3]'
+                        Modify the stack file by passing a list of key=value pairs, where the key is in dot notation. i.e. a.b.c=value1 d='[value2, value3]'
+  --redeploy, -R        Re-deply in case of stacks exists.
+  -y                    Accept redeploy and do not ask for confirmation before redeploying the stack.
   --endpoint ENDPOINT, -e ENDPOINT
-                        Endponint Id to deploy the stack
+                        Endpoint Id to deploy the stack.
 ```
+You can redeploy a stack by using the `--redeploy` flag. This is useful to update an image rebuild. This feature requires a confirmation and can be accepted automatically and skipped with the `-y` flag.
 
+### The `remove` sub-command
+This sub-command allows you to remove a stack from Portainer by setting its `id` or `name` and the `endpoint` as well.
+
+```shell
+$ portainer-deployer remove --help
+usage: portainer-deployer remove [-h] [--id ID | --name NAME] [--endpoint ENDPOINT] [-y]
+
+Remove a stack from Portainer.
+
+optional arguments:
+  -h, --help            Show help message and exit.
+  --id ID               Id of the stack remove
+  --name NAME, -n NAME  Name of the stack to remove
+  --endpoint ENDPOINT, -e ENDPOINT
+                        Endpoint Id from the stack to remove.
+  -y                    Accept removal action and do not ask for confirmation.
+```
+This sub-command also has a confirmation step, and can be accepted automatically and skipped with the `-y` flag.
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 
@@ -263,9 +280,9 @@ optional arguments:
 ## 🎉 Acknowledgements <a name = "acknowledgement"></a>
 
 - [Portainer](https://www.portainer.io/about) and its development team
-- My Collage Professor _Rodrigo Orizondo (@yoyirod)_ 🕊️🙏 for the inspiration
+- My College Professor _Rodrigo Orizondo (@yoyirod)_ 🕊️🙏 for the inspiration
 - The DevOps community
 
 ## 🤝 Contributing <a name = "contributing"></a>
 I'm open to contributions!
-If you are insterested in collaboring, you can reach out to me via the info on [my bio](https://github.com/Jorgmassih).
+If you are interested in collaborating, you can reach out to me via the info on [my bio](https://github.com/Jorgmassih).
